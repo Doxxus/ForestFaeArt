@@ -1,0 +1,12 @@
+node_modules
+dist
+.turbo
+.next
+.wrangler
+.dev.vars
+.env
+.env.*
+!.env.example
+*.log
+build_prompt.md
+functional_requirements.md
