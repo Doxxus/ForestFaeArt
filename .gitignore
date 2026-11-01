@@ -1,6 +1,15 @@
 node_modules
 dist
 .turbo
+.tmp
+.expo
+.expo-export
+.cloudflare
+.vinext
+next-env.d.ts
+expo-env.d.ts
+*.tsbuildinfo
+spikes
 out
 .next
 .wrangler

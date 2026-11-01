@@ -37,7 +37,7 @@ Today is 31 Oct, so Phase 0 has about 3 days left. Proposed adjustments to the i
 
 | Phase | Plan | Change |
 |---|---|---|
-| 0 | Gate by **3 Nov**: architecture approved, monorepo + CI scaffold, staging Worker deployed, D1/R2 bound, auth layer scaffolded, ADRs. Hands-on spikes (domain move, B1, QR print test) run in parallel and may finish by **7 Nov** without blocking Phase 1 | Spikes may spill over 4 days |
+| 0 | Gate by **3 Nov**: architecture approved, monorepo + CI scaffold, staging Worker deployed, D1/R2 bound, auth layer scaffolded, ADRs. Hands-on spikes (domain move, B1, QR print test) run in parallel and may finish by **7 Nov** without blocking Phase 1 | Spikes may spill over 4 days. **Status 31 Oct:** monorepo, CI, staging API (with D1 and auth) and staging web are done, see [staging.md](./staging.md). Logo direction approved (see [ADR 005](./adr/005-brand-direction.md)). Still open: domain move, B1 Bluetooth spike |
 | 1 | 3 to 10 Nov | None |
 | 2 | 10 to 20 Nov | None |
 | 5 | 17 to 27 Nov | None, but **the QR spike must be complete before 17 Nov** |
@@ -110,4 +110,4 @@ Irreversible items **needing explicit approval**: ULID IDs, SKU format `FFA-0001
 1. Install pnpm (`corepack enable`), scaffold the monorepo and CI (lint, typecheck, test, build), pin Node 24.
 2. Create the dedicated Cloudflare account, start the domain move (R1), create staging D1/R2.
 3. Throwaway spike app for spike 6, then ADRs.
-4. Three logo directions (SVG sketches) for developer approval.
+4. ~~Three logo directions (SVG sketches) for developer approval.~~ Done and approved, see [ADR 005](./adr/005-brand-direction.md).

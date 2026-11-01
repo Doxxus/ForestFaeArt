@@ -16,6 +16,14 @@ pnpm build
 
 ## Layout
 
-- `packages/validators`: shared Zod schemas and pure helpers (SKU, money)
-- `packages/auth`: first-party auth rules (scrypt passwords, signed session tokens, role checks, lockout, one-time tokens). See [ADR 003](./docs/adr/003-auth.md)
+- `apps/api`: Cloudflare Worker with the tRPC API, D1 access and sign-in. See [docs/staging.md](./docs/staging.md)
+- `apps/web`: Next.js (vinext) site and admin on Cloudflare Workers. Placeholder page for now
+- `apps/pos`: Expo Android point-of-sale app. Placeholder screen for now
+- `packages/db`: Drizzle schema and D1 migrations
+- `packages/api-types`: type-only export of the API router for the web and POS apps
+- `packages/validators`: shared Zod schemas and pure helpers (SKU, money, IDs)
+- `packages/auth`: first-party auth rules (scrypt passwords, signed session tokens, role checks, lockout, login). See [ADR 003](./docs/adr/003-auth.md)
+- `packages/label-engine`: QR and label rendering. See [ADR 004](./docs/adr/004-label-rendering.md) and [docs/label-print-test.md](./docs/label-print-test.md)
+- `packages/ui`: brand kit and design tokens (starting with the [logo directions](./packages/ui/brand/logo-directions/README.md) awaiting approval)
 - `docs/adr`: architecture decision records
+- `spikes/`: throwaway experiments, not part of the workspace

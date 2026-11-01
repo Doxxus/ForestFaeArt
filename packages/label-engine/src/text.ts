@@ -1,3 +1,6 @@
+// Ships the opentype.js typings with this package so consumers type-check without extra setup.
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="./opentype.d.ts" />
 import * as opentype from "opentype.js";
 import type { Font } from "opentype.js";
 

@@ -11,7 +11,7 @@ Date: 31 Oct 2026.
 - Default layout at 40x30 mm and 203 dpi (320x240 px): QR on the left, the logo in its centre, the SKU under the QR, the title on the right, and the price directly under the title. The price is the largest text (48 px, about 6 mm, shrinking only if a long price needs it) so it reads from a distance. A black **TEST** bar is added when the base URL is not production.
 - QR error correction is always **H**. The logo knock-out is an odd number of modules, centred, chosen to be closest to 12% of the QR area.
 - Fonts: Barlow Condensed (SIL OFL, `fonts/OFL.txt`) as a placeholder. The brand type replaces it after the branding decision.
-- The logo is a **placeholder moth** in `src/logo.ts`. It is replaced by the approved brand mark.
+- The logo is the geometric moth from the approved brand direction (see [ADR 005](./005-brand-direction.md)), in `src/logo.ts`. It replaced the earlier placeholder moth on 31 Oct 2026, and every QR scan test still passes.
 
 ## Evidence so far
 

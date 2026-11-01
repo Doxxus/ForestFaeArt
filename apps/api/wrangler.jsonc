@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ffa-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-30",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "vars": { "ENVIRONMENT": "local" },
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "ffa-staging-media" }],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ffa-staging",
+      "database_id": "8669cdae-fe0c-4f3b-aca1-b0ffb443068b",
+      "migrations_dir": "../../packages/db/migrations"
+    }
+  ],
+  "env": {
+    "staging": {
+      "name": "ffa-api-staging",
+      "vars": { "ENVIRONMENT": "staging" },
+      "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "ffa-staging-media" }],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "ffa-staging",
+          "database_id": "8669cdae-fe0c-4f3b-aca1-b0ffb443068b",
+          "migrations_dir": "../../packages/db/migrations"
+        }
+      ]
+    }
+  }
+}
