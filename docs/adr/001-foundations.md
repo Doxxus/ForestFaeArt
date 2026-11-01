@@ -8,7 +8,7 @@ Status: accepted by the developer on 31 Oct 2026.
 - IDs are ULIDs. SKU is `FFA-` plus six digits (`FFA-000123`), generated from an atomic counter.
 - Money is integer CAD cents. Timestamps are UTC.
 - Cloudflare D1 + Drizzle is the only datastore. Business writes use `db.batch()` with guarded updates, since D1 has no interactive transactions.
-- Clerk for auth. The API verifies the token itself and takes the role from the `User` table.
+- First-party sessions for auth, with no MFA at launch (see [ADR 003](./003-auth.md)). The API verifies the session itself and takes the role from the `User` table.
 - `apps/api` is a separate Cloudflare Worker (tRPC). Web and POS are API consumers.
 - Next.js on Workers: spike **vinext first**, then OpenNext, and choose on evidence (ADR 002).
 
