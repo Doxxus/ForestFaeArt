@@ -1,0 +1,22 @@
+-- Reference data every environment needs (CAT-3, META-2, META-6) and the sequence counters.
+
+INSERT INTO counter (key, next_value) VALUES ('sku', 1), ('sale', 1);
+
+INSERT INTO category (id, name, slug, description, sort_order, hidden, created_at, updated_at) VALUES ('01M6HSM3HW56573X4QP3MBFKPH', 'Butterfly', 'butterfly', '', 10, 0, 1793746144828, 1793746144828);
+INSERT INTO category (id, name, slug, description, sort_order, hidden, created_at, updated_at) VALUES ('01M6HSM3HXA73A8K6FFRHXHKAY', 'Moth', 'moth', '', 20, 0, 1793746144828, 1793746144828);
+INSERT INTO category (id, name, slug, description, sort_order, hidden, created_at, updated_at) VALUES ('01M6HSM3HX3CAGBDWE92N75TXN', 'Beetle', 'beetle', '', 30, 0, 1793746144828, 1793746144828);
+INSERT INTO category (id, name, slug, description, sort_order, hidden, created_at, updated_at) VALUES ('01M6HSM3HXXYTQB42DA5F9ME6E', 'Jewelry', 'jewelry', '', 40, 0, 1793746144828, 1793746144828);
+INSERT INTO category (id, name, slug, description, sort_order, hidden, created_at, updated_at) VALUES ('01M6HSM3HXX7N74QP3PC9JC33X', 'Taxidermy', 'taxidermy', '', 50, 0, 1793746144828, 1793746144828);
+INSERT INTO category (id, name, slug, description, sort_order, hidden, created_at, updated_at) VALUES ('01M6HSM3HXGDQ2VGCVA28G28CH', 'Featured', 'featured', '', 60, 0, 1793746144828, 1793746144828);
+INSERT INTO category (id, name, slug, description, sort_order, hidden, created_at, updated_at) VALUES ('01M6HSM3HXHKJPM749F6MCCS02', 'Collection', 'collection', '', 70, 0, 1793746144828, 1793746144828);
+INSERT INTO category (id, name, slug, description, sort_order, hidden, created_at, updated_at) VALUES ('01M6HSM3HXDB1VEFDTZ70BM98H', 'Limited Edition', 'limited-edition', '', 80, 0, 1793746144828, 1793746144828);
+
+INSERT INTO metadata_field (id, key, label, type, options, help_text, required, is_public, filterable, sort_order, created_at, updated_at) VALUES ('01M6HSM3HXX248MGEPBRDMS3JH', 'species', 'Species', 'TEXT', '[]', '', 0, 1, 1, 10, 1793746144828, 1793746144828);
+INSERT INTO metadata_field (id, key, label, type, options, help_text, required, is_public, filterable, sort_order, created_at, updated_at) VALUES ('01M6HSM3HXGSJ0YSCD0RXQJ53K', 'insect_type', 'Insect Type', 'SELECT', '["Butterfly","Moth","Beetle","Dragonfly","Spider","Cicada","Centipede","Other"]', '', 0, 1, 1, 20, 1793746144828, 1793746144828);
+INSERT INTO metadata_field (id, key, label, type, options, help_text, required, is_public, filterable, sort_order, created_at, updated_at) VALUES ('01M6HSM3HXKT38MPBD5TANR2WN', 'collection', 'Collection', 'SELECT', '[]', '', 0, 1, 1, 30, 1793746144828, 1793746144828);
+INSERT INTO metadata_field (id, key, label, type, options, help_text, required, is_public, filterable, sort_order, created_at, updated_at) VALUES ('01M6HSM3HX3ADJXCY7MDXCRD41', 'frame_color', 'Frame Color', 'SELECT', '["Black","White","Natural wood","Walnut","Gold","Other"]', '', 0, 1, 1, 40, 1793746144828, 1793746144828);
+INSERT INTO metadata_field (id, key, label, type, options, help_text, required, is_public, filterable, sort_order, created_at, updated_at) VALUES ('01M6HSM3HXE860SMNQCN659KW9', 'frame_size', 'Frame Size', 'TEXT', '[]', 'For example 8 x 10 in', 0, 1, 0, 50, 1793746144828, 1793746144828);
+INSERT INTO metadata_field (id, key, label, type, options, help_text, required, is_public, filterable, sort_order, created_at, updated_at) VALUES ('01M6HSM3HXJ5K3MZE2HF3ZVJNQ', 'creation_year', 'Creation Year', 'YEAR', '[]', '', 0, 1, 1, 60, 1793746144828, 1793746144828);
+INSERT INTO metadata_field (id, key, label, type, options, help_text, required, is_public, filterable, sort_order, created_at, updated_at) VALUES ('01M6HSM3HXAT8KHQ3GND6XTYVP', 'tags', 'Tags', 'MULTI_SELECT', '[]', '', 0, 1, 1, 70, 1793746144828, 1793746144828);
+INSERT INTO metadata_field (id, key, label, type, options, help_text, required, is_public, filterable, sort_order, created_at, updated_at) VALUES ('01M6HSM3HXZX0V2BG1CM390JTP', 'provenance', 'Provenance / Sourcing', 'SELECT', '["Ethically sourced","Farm-raised","Antique / vintage","Naturally deceased","Other"]', 'Where the specimen came from. Please don''t list endangered or protected species.', 0, 1, 1, 80, 1793746144828, 1793746144828);
+INSERT INTO metadata_field (id, key, label, type, options, help_text, required, is_public, filterable, sort_order, created_at, updated_at) VALUES ('01M6HSM3HXN12KN9CWZP0C5CZ6', 'provenance_note', 'Provenance note', 'TEXT', '[]', 'Optional extra detail about the sourcing.', 0, 1, 0, 90, 1793746144828, 1793746144828);

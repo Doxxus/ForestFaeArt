@@ -33,7 +33,13 @@ Run these from `apps/api` unless noted.
 | Deploy the web app to staging | `pnpm deploy:staging` in `apps/web` |
 | Change the staging secret | `wrangler secret put SESSION_SECRET --env staging` (this signs everyone out) |
 
-After changing `packages/db/src/schema.ts`, run `pnpm db:generate` in `packages/db` to create a migration, review the SQL, then apply it.
+After changing `packages/db/src/schema.ts`, run `pnpm db:generate` in `packages/db` to create a migration, review the SQL, then apply it. Hand-written SQL (triggers, reference data) goes in a migration made with `pnpm exec drizzle-kit generate --custom --name <name>`.
+
+## Database state
+
+Staging has migrations `0000` to `0003` applied (3 Nov 2026): the full data model, the append-only triggers, and the reference data (8 categories, 9 metadata fields, the `sku` and `sale` counters). There are no users yet. The first ADMIN is created with `create-user`, after which further users are invited from the API (`users.invite` returns a set-password link, `WEB_ORIGIN` builds it).
+
+API tests (`pnpm test` in `apps/api`) run against a throwaway local D1 with every migration applied. They never touch staging.
 
 ## Not set up yet
 

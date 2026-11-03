@@ -19,7 +19,7 @@ pnpm build
 - `apps/api`: Cloudflare Worker with the tRPC API, D1 access and sign-in. See [docs/staging.md](./docs/staging.md)
 - `apps/web`: Next.js (vinext) site and admin on Cloudflare Workers. Placeholder page for now
 - `apps/pos`: Expo Android point-of-sale app. Placeholder screen for now
-- `packages/db`: Drizzle schema and D1 migrations
+- `packages/db`: Drizzle schema and D1 migrations (the full data model, see [ADR 006](./docs/adr/006-data-model.md))
 - `packages/api-types`: type-only export of the API router for the web and POS apps
 - `packages/validators`: shared Zod schemas and pure helpers (SKU, money, IDs)
 - `packages/auth`: first-party auth rules (scrypt passwords, signed session tokens, role checks, lockout, login). See [ADR 003](./docs/adr/003-auth.md)

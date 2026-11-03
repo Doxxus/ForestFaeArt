@@ -13,6 +13,7 @@
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
+    "@ffa/validators": "workspace:*",
     "drizzle-orm": "^0.45.4"
   },
   "devDependencies": {

@@ -6,6 +6,10 @@ import { loadUserRecord, makeDb, type Db } from "./store";
 export interface Context {
   env: Env;
   db: Db;
+  /** Client IP as seen by Cloudflare. Null in local development. */
+  ip: string | null;
+  /** Which app is calling, from the x-ffa-client header. Only used to label inventory history. */
+  source: "ADMIN" | "POS";
   /** Verified lazily so public procedures never pay for it. */
   claims: () => Promise<SessionClaims | null>;
 }
@@ -17,14 +21,25 @@ export function createContext(env: Env, req: Request): Context {
   return {
     env,
     db: makeDb(env.DB),
+    ip: req.headers.get("cf-connecting-ip"),
+    source: req.headers.get("x-ffa-client") === "pos" ? "POS" : "ADMIN",
     claims: () => (cached ??= token ? verifySessionToken(token, env.SESSION_SECRET) : Promise.resolve(null)),
   };
 }
 
-const t = initTRPC.context<Context>().create();
+// isDev: false keeps stack traces out of responses. tRPC otherwise decides from NODE_ENV, which Workers don't set.
+const t = initTRPC.context<Context>().create({ isDev: false });
 
 export const router = t.router;
 export const publicProcedure = t.procedure;
+
+/** The signed-in user for a public procedure that behaves differently for staff (for example previewing an unpublished site). */
+export async function optionalUser(ctx: Context) {
+  const claims = await ctx.claims();
+  const user = claims ? await loadUserRecord(ctx.db, claims.userId) : null;
+  const result = authorize(claims, user, ROLES.anyUser);
+  return result.ok ? result.user : null;
+}
 
 function requireRoles(allowed: readonly Role[]) {
   return t.middleware(async ({ ctx, next }) => {

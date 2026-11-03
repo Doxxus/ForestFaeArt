@@ -5,7 +5,7 @@
   "compatibility_date": "2026-10-30",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
-  "vars": { "ENVIRONMENT": "local" },
+  "vars": { "ENVIRONMENT": "local", "WEB_ORIGIN": "http://localhost:3000" },
   "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "ffa-staging-media" }],
   "d1_databases": [
     {
@@ -18,7 +18,7 @@
   "env": {
     "staging": {
       "name": "ffa-api-staging",
-      "vars": { "ENVIRONMENT": "staging" },
+      "vars": { "ENVIRONMENT": "staging", "WEB_ORIGIN": "https://ffa-web-staging.forestfaefolk.workers.dev" },
       "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "ffa-staging-media" }],
       "d1_databases": [
         {

@@ -318,6 +318,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@ffa/validators':
+        specifier: workspace:*
+        version: link:../validators
       drizzle-orm:
         specifier: ^0.45.4
         version: 0.45.4(@cloudflare/workers-types@5.20261031.1)

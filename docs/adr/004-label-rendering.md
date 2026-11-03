@@ -33,4 +33,4 @@ Date: 31 Oct 2026.
 
 ## Not built yet (Phase 5)
 
-Adjustable templates, A4 batch sheets with crop marks and start position, PDF export, stale-label flag, label print records, and direct Bluetooth printing (spike 4).
+Adjustable templates, A4 batch sheets with crop marks and start position, PDF export, stale-label flag, label print records, and direct Bluetooth printing (spike 4, deferred to the start of Phase 5; PNG export through the NIIMBOT app is the approved fallback).

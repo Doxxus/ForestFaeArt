@@ -1,0 +1,77 @@
+import { z } from "zod";
+import { STORE_MODES } from "./enums";
+
+const emailish = z.string().trim().max(254).refine((v) => v === "" || z.string().email().safeParse(v).success, {
+  message: "Enter a valid email address",
+});
+const urlish = z.string().trim().max(500).refine((v) => v === "" || /^https?:\/\/\S+$/i.test(v), {
+  message: "Enter a full web address starting with https://",
+});
+const text = (max: number) => z.string().trim().max(max);
+
+interface SettingDef<T extends z.ZodType> {
+  schema: T;
+  default: z.infer<T>;
+  /** Safe to expose to the public website. Everything else needs a signed-in user. */
+  public: boolean;
+}
+
+const def = <T extends z.ZodType>(d: SettingDef<T>) => d;
+
+/** The typed, validated set of site settings (not free-form keys). Values are stored as JSON text. */
+export const SETTINGS = {
+  storeMode: def({ schema: z.enum(STORE_MODES), default: "SHOWCASE_ONLY", public: true }),
+  siteLive: def({ schema: z.boolean(), default: false, public: true }),
+  showPrices: def({ schema: z.boolean(), default: true, public: true }),
+  showProductsWithoutPhotos: def({ schema: z.boolean(), default: false, public: true }),
+  showStockCounts: def({ schema: z.boolean(), default: false, public: true }),
+  showEtsyLinks: def({ schema: z.boolean(), default: true, public: true }),
+  businessName: def({ schema: text(120), default: "Forest Fae Folk Art", public: true }),
+  tagline: def({ schema: text(200), default: "", public: true }),
+  sourcingStatement: def({ schema: text(2000), default: "", public: true }),
+  instagramUrl: def({ schema: urlish, default: "https://www.instagram.com/forestfaefolkart", public: true }),
+  etsyUrl: def({ schema: urlish, default: "https://forestfaefolkart.etsy.com", public: true }),
+  facebookUrl: def({ schema: urlish, default: "", public: true }),
+  inquiryEmail: def({ schema: emailish, default: "asa@forestfae.ca", public: false }),
+  systemFromEmail: def({ schema: emailish, default: "noreply@forestfae.ca", public: false }),
+  replyToEmail: def({ schema: emailish, default: "asa@forestfae.ca", public: false }),
+  qrBaseUrl: def({ schema: urlish, default: "https://forestfae.ca", public: false }),
+  defaultLabelTemplateId: def({ schema: z.string().max(40).nullable(), default: null, public: false }),
+  taxRegistered: def({ schema: z.boolean(), default: false, public: false }),
+  taxRegistrationNumber: def({ schema: text(40), default: "", public: false }),
+  smallSupplierThresholdCents: def({ schema: z.number().int().positive(), default: 3_000_000, public: false }),
+} as const;
+
+export type SettingKey = keyof typeof SETTINGS;
+export type SettingValue<K extends SettingKey> = z.infer<(typeof SETTINGS)[K]["schema"]>;
+export type Settings = { [K in SettingKey]: SettingValue<K> };
+
+export const SETTING_KEYS = Object.keys(SETTINGS) as SettingKey[];
+export const PUBLIC_SETTING_KEYS = SETTING_KEYS.filter((k) => SETTINGS[k].public);
+
+export const isSettingKey = (key: string): key is SettingKey => Object.hasOwn(SETTINGS, key);
+
+export function defaultSettings(): Settings {
+  return Object.fromEntries(SETTING_KEYS.map((k) => [k, SETTINGS[k].default])) as Settings;
+}
+
+/** Combine stored JSON strings with defaults. Unknown keys and values that no longer validate fall back to the default. */
+export function resolveSettings(stored: Record<string, string>): Settings {
+  const out = defaultSettings() as Record<string, unknown>;
+  for (const key of SETTING_KEYS) {
+    const raw = stored[key];
+    if (raw === undefined) continue;
+    try {
+      const parsed = SETTINGS[key].schema.safeParse(JSON.parse(raw));
+      if (parsed.success) out[key] = parsed.data;
+    } catch {
+      // Corrupt JSON: keep the default.
+    }
+  }
+  return out as Settings;
+}
+
+/** Validate a single value for writing. Throws a ZodError with a friendly message. */
+export function parseSettingValue<K extends SettingKey>(key: K, value: unknown): SettingValue<K> {
+  return SETTINGS[key].schema.parse(value) as SettingValue<K>;
+}
