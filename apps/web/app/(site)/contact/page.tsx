@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Prose } from "@/components/site/cards";
+import { PageHeader, Prose } from "@/components/site/cards";
 import { InquiryForm } from "@/components/site/inquiry-form";
 import { Alert } from "@/components/ui";
 import { errorCode } from "@/lib/api";
@@ -26,10 +26,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
-      <header className="mb-8 text-center">
-        <h1 className="font-display text-4xl text-forest sm:text-5xl">{page.title}</h1>
-        <div aria-hidden="true" className="mx-auto mt-3 h-px w-24 bg-copper" />
-      </header>
+      <PageHeader title={page.title} art={["wildflowers", "atlas-moth"]} />
       <div className="grid gap-10 md:grid-cols-[1fr_1.4fr]">
         <div>
           <Prose paragraphs={paragraphs(page.body)} className="text-lg" />

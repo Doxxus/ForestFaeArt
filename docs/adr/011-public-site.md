@@ -65,6 +65,8 @@ Status: **accepted** (3 Nov 2026, Phase 4). Built, tested and deployed to stagin
 
 **Art and brand** (`packages/ui/scripts/kit`, output in `apps/web/public/kit`): 19 assets, 85 KB in all: luna moth, atlas moth, morpho and swallowtail butterflies, stag beetle, scarab, dragonfly, cicada, spider, centipede, mushrooms, leaf sprig, branch, wildflowers, fern, corner ornament, two dividers (light and dark grounds) and the small mark. Also the favicon, the touch icon and the 1200 x 630 link-preview picture. `packages/ui/src/kit.test.ts` enforces a size budget per file, that nothing is external or scripted or uses text, that only brand colours appear, and that the committed files match what the drawing code makes today (so nobody edits an asset by hand and forgets to regenerate). The staff-only style guide is at `/admin/style-guide`.
 
+**Where the art is placed:** home hero (luna moth, swallowtail, dragonfly, ferns, corners); `SectionHeading` and every page title use the vine divider; the Portfolio, Events, About and Contact titles get a creature on each side from 1024px up (`PageHeader`, hidden on smaller screens so it never crowds the words); empty and missing-page states use a small picture (`EmptyArt`: mushrooms, centipede, spider, leaf sprig); the footer uses the light vine divider; the Coming soon page and the About sourcing box use the corner and the fern. Product pages, legal pages and the owner screens are deliberately plain. Add art with `<Kit name="…" />`, and keep it decorative.
+
 ## Settings per environment
 
 Set in `apps/web/.env.production` (the one used when deployed) and `.env.development`:

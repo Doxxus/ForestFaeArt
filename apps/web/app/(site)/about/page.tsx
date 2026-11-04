@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Prose } from "@/components/site/cards";
+import { PageHeader, Prose } from "@/components/site/cards";
 import { Kit } from "@/components/site/kit";
 import { errorCode } from "@/lib/api";
 import { serverApi } from "@/lib/session";
@@ -31,10 +31,7 @@ export default async function AboutPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
-      <header className="mb-8 text-center">
-        <h1 className="font-display text-4xl text-forest sm:text-5xl">{page.title}</h1>
-        <div aria-hidden="true" className="mx-auto mt-3 h-px w-24 bg-copper" />
-      </header>
+      <PageHeader title={page.title} art={["scarab", "stag-beetle"]} />
       <div className={page.imagePath ? "grid items-start gap-8 md:grid-cols-[1fr_1.2fr]" : ""}>
         {page.imagePath ? (
           <img src={imageSrc(page.imagePath, 960)} srcSet={imageSrcSet(page.imagePath, [640, 960, 1280])} sizes="(min-width: 768px) 40vw, 100vw" alt="" width={960} height={1200} loading="eager" decoding="async" className="w-full rounded-xl border border-stone object-cover" />

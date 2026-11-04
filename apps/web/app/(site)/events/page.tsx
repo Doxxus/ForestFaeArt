@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { EventCard } from "@/components/site/events";
-import { SectionHeading } from "@/components/site/cards";
+import { EmptyArt, PageHeader, SectionHeading } from "@/components/site/cards";
 import { API_URL } from "@/lib/config";
 import { serverApi } from "@/lib/session";
 
@@ -12,9 +12,7 @@ export default async function EventsPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
-      <header className="mb-10 text-center">
-        <h1 className="font-display text-4xl text-forest sm:text-5xl">Events</h1>
-        <div aria-hidden="true" className="mx-auto mt-3 h-px w-24 bg-copper" />
+      <PageHeader title="Events" art={["cicada", "dragonfly"]} className="mb-10">
         <p className="mx-auto mt-3 max-w-xl text-lg text-moss">Markets and shows where you can meet the work in person.</p>
         {upcoming.length ? (
           <p className="mt-4">
@@ -23,12 +21,15 @@ export default async function EventsPage() {
             </a>
           </p>
         ) : null}
-      </header>
+      </PageHeader>
 
       <section aria-labelledby="upcoming-heading">
         <SectionHeading id="upcoming-heading">Coming up</SectionHeading>
         {upcoming.length === 0 ? (
-          <p className="rounded-xl border border-stone bg-parchment p-6 text-center text-moss">No events are planned right now. Check back soon, or follow along on social media for news.</p>
+          <div className="rounded-xl border border-stone bg-parchment p-6 text-center">
+            <EmptyArt name="centipede" className="h-12" />
+            <p className="text-moss">No events are planned right now. Check back soon, or follow along on social media for news.</p>
+          </div>
         ) : (
           <ol className="grid gap-4">
             {upcoming.map((e) => (

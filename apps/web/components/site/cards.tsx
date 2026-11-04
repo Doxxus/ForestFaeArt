@@ -2,7 +2,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { PhotoPlaceholder } from "@/components/placeholder";
 import { priceLine } from "@/lib/format";
+import type { KitName } from "@/lib/kit-manifest";
 import { imageSrc, imageSrcSet } from "@/lib/site";
+import { Kit } from "./kit";
 
 export interface CardPiece {
   sku: string;
@@ -64,10 +66,35 @@ export function SectionHeading({ id, children, intro }: { id?: string; children:
       <h2 id={id} className="font-display text-3xl text-forest sm:text-4xl">
         {children}
       </h2>
-      <div aria-hidden="true" className="mx-auto mt-3 h-px w-24 bg-copper" />
+      <Kit name="divider-vine" className="mx-auto mt-2 h-auto w-64 max-w-full" />
       {intro ? <p className="mx-auto mt-3 max-w-xl text-moss">{intro}</p> : null}
     </div>
   );
+}
+
+/**
+ * The opening of a page: the title, a vine divider, and a creature on each side on wide screens.
+ * The art is decorative and hidden below 1024px so it never crowds the words.
+ */
+export function PageHeader({ title, art, className = "mb-8", children }: { title: ReactNode; art?: [KitName, KitName]; className?: string; children?: ReactNode }) {
+  return (
+    <header className={`relative text-center ${className}`}>
+      {art ? (
+        <>
+          <Kit name={art[0]} className="absolute left-0 top-1/2 hidden h-24 w-auto max-w-none -translate-y-1/2 opacity-90 lg:block" />
+          <Kit name={art[1]} className="absolute right-0 top-1/2 hidden h-24 w-auto max-w-none -translate-y-1/2 -scale-x-100 opacity-90 lg:block" />
+        </>
+      ) : null}
+      <h1 className="font-display text-4xl text-forest sm:text-5xl">{title}</h1>
+      <Kit name="divider-vine" className="mx-auto mt-2 h-auto w-64 max-w-full" />
+      {children}
+    </header>
+  );
+}
+
+/** A small picture above the words of an empty or missing-page message. */
+export function EmptyArt({ name, className = "h-16" }: { name: KitName; className?: string }) {
+  return <Kit name={name} className={`mx-auto mb-4 w-auto max-w-full ${className}`} />;
 }
 
 /** Paragraphs from plain text. Nothing the owner types is ever treated as markup. */

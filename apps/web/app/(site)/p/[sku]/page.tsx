@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { EmptyArt } from "@/components/site/cards";
 import { buttonClass } from "@/components/ui";
 import { errorCode } from "@/lib/api";
 import { serverApi } from "@/lib/session";
@@ -27,6 +28,7 @@ export default async function ScannedLabel({ params }: { params: Promise<{ sku: 
 
   return (
     <div className="mx-auto max-w-xl px-4 py-20 text-center">
+      <EmptyArt name="leaf-sprig" className="h-20" />
       <h1 className="font-display text-3xl text-forest">This piece isn&apos;t on the website yet.</h1>
       <p className="mt-3 text-lg text-moss">
         Thank you for scanning its label. {settings.businessName} is still adding new work, so its page may appear soon. In the meantime, have a look at everything else.

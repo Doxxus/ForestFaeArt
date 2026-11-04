@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { PORTFOLIO_PAGE_SIZE, PORTFOLIO_SORTS, PORTFOLIO_SORT_LABELS, needsTidy, parsePortfolioParams, portfolioHref } from "@ffa/validators";
-import { CardGrid, ProductCard } from "@/components/site/cards";
+import { CardGrid, EmptyArt, PageHeader, ProductCard } from "@/components/site/cards";
 import { Pagination } from "@/components/site/pagination";
 import { Button, Input, Select, buttonClass } from "@/components/ui";
 import { absoluteUrl } from "@/lib/seo";
@@ -49,11 +49,9 @@ export default async function PortfolioPage({ searchParams }: { searchParams: Se
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <header className="mb-8 text-center">
-        <h1 className="font-display text-4xl text-forest sm:text-5xl">{category ? category.name : "Portfolio"}</h1>
-        <div aria-hidden="true" className="mx-auto mt-3 h-px w-24 bg-copper" />
+      <PageHeader title={category ? category.name : "Portfolio"} art={["morpho-butterfly", "morpho-butterfly"]}>
         {category?.description ? <p className="mx-auto mt-3 max-w-2xl text-lg text-moss">{category.description}</p> : null}
-      </header>
+      </PageHeader>
 
       <form method="get" action="/portfolio" role="search" aria-label="Search and filter the portfolio" className="mb-8 rounded-xl border border-stone bg-parchment p-4">
         <div className="grid gap-x-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -137,6 +135,7 @@ export default async function PortfolioPage({ searchParams }: { searchParams: Se
 
       {result.items.length === 0 ? (
         <div className="rounded-xl border border-stone bg-parchment p-8 text-center">
+          <EmptyArt name="mushrooms" />
           <p className="font-display text-2xl text-forest">Nothing matches just yet.</p>
           <p className="mt-2 text-moss">{hasFilters ? "Try a different word, or clear the filters to see everything." : "New work is on its way. Please check back soon."}</p>
           {hasFilters ? (
