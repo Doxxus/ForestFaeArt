@@ -43,12 +43,12 @@ async function prepare(file: File): Promise<Blob> {
   return out ?? blob;
 }
 
-async function send(productId: string, blob: Blob): Promise<void> {
+async function send(query: string, blob: Blob): Promise<void> {
   let lastError = "The upload didn't work. Please try again.";
   for (let attempt = 0; attempt < 3; attempt++) {
     if (attempt) await new Promise((r) => setTimeout(r, 1000 * attempt));
     try {
-      const res = await fetch(`/admin/upload?productId=${encodeURIComponent(productId)}`, {
+      const res = await fetch(`/admin/upload?${query}`, {
         method: "POST",
         headers: { "content-type": blob.type || "application/octet-stream" },
         body: blob,
@@ -71,7 +71,11 @@ async function send(productId: string, blob: Blob): Promise<void> {
   throw new Error(lastError);
 }
 
-export function PhotoUploader({ productId }: { productId: string }) {
+/**
+ * `query` says what the photo belongs to, already URL-encoded: `productId=...`, `eventId=...` or `contentKey=...`.
+ * Events and pages hold a single picture, so they pass `single` and a replacing label.
+ */
+export function PhotoUploader({ query, single = false, label }: { query: string; single?: boolean; label?: string }) {
   const router = useRouter();
   const [items, setItems] = useState<Item[]>([]);
   const [busy, setBusy] = useState(false);
@@ -88,7 +92,7 @@ export function PhotoUploader({ productId }: { productId: string }) {
       try {
         const blob = await prepare(file);
         update(id, { state: "uploading" });
-        await send(productId, blob);
+        await send(query, blob);
         update(id, { state: "done" });
       } catch (error) {
         update(id, { state: "error", message: error instanceof Error ? error.message : "That photo couldn't be added." });
@@ -102,13 +106,15 @@ export function PhotoUploader({ productId }: { productId: string }) {
     <div>
       <div className="flex flex-wrap gap-2">
         <label className="inline-flex min-h-11 cursor-pointer items-center rounded-lg bg-forest px-4 py-2 font-medium text-cream hover:bg-moss">
-          Add photos
-          <input type="file" accept="image/*,.heic,.heif" multiple className="sr-only" disabled={busy} onChange={(e) => { void handle(e.target.files); e.target.value = ""; }} />
+          {label ?? (single ? "Choose a photo" : "Add photos")}
+          <input type="file" accept="image/*,.heic,.heif" multiple={!single} className="sr-only" disabled={busy} onChange={(e) => { void handle(e.target.files); e.target.value = ""; }} />
         </label>
-        <label className="inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-forest px-4 py-2 font-medium text-forest hover:bg-parchment">
-          Take a photo
-          <input type="file" accept="image/*" capture="environment" className="sr-only" disabled={busy} onChange={(e) => { void handle(e.target.files); e.target.value = ""; }} />
-        </label>
+        {single ? null : (
+          <label className="inline-flex min-h-11 cursor-pointer items-center rounded-lg border border-forest px-4 py-2 font-medium text-forest hover:bg-parchment">
+            Take a photo
+            <input type="file" accept="image/*" capture="environment" className="sr-only" disabled={busy} onChange={(e) => { void handle(e.target.files); e.target.value = ""; }} />
+          </label>
+        )}
       </div>
       {items.length ? (
         <ul className="mt-3 space-y-1 text-sm" aria-live="polite">

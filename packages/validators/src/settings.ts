@@ -28,7 +28,11 @@ export const SETTINGS = {
   showEtsyLinks: def({ schema: z.boolean(), default: true, public: true }),
   businessName: def({ schema: text(120), default: "Forest Fae Folk Art", public: true }),
   tagline: def({ schema: text(200), default: "", public: true }),
-  sourcingStatement: def({ schema: text(2000), default: "", public: true }),
+  sourcingStatement: def({
+    schema: text(2000),
+    default: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. (Draft: please write your own sourcing statement.)",
+    public: true,
+  }),
   instagramUrl: def({ schema: urlish, default: "https://www.instagram.com/forestfaefolkart", public: true }),
   etsyUrl: def({ schema: urlish, default: "https://forestfaefolkart.etsy.com", public: true }),
   facebookUrl: def({ schema: urlish, default: "", public: true }),
@@ -45,6 +49,9 @@ export const SETTINGS = {
 export type SettingKey = keyof typeof SETTINGS;
 export type SettingValue<K extends SettingKey> = z.infer<(typeof SETTINGS)[K]["schema"]>;
 export type Settings = { [K in SettingKey]: SettingValue<K> };
+
+/** Placeholder copy is lorem ipsum, which the owner is meant to replace (WEB-2). */
+export const isPlaceholderText = (s: string) => /lorem ipsum/i.test(s);
 
 export const SETTING_KEYS = Object.keys(SETTINGS) as SettingKey[];
 export const PUBLIC_SETTING_KEYS = SETTING_KEYS.filter((k) => SETTINGS[k].public);

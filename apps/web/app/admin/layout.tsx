@@ -6,6 +6,9 @@ import { signOutAction } from "./actions";
 const NAV = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/products", label: "Products" },
+  { href: "/admin/events", label: "Events" },
+  { href: "/admin/inquiries", label: "Inquiries", admin: true },
+  { href: "/admin/website", label: "Website", admin: true },
   { href: "/admin/categories", label: "Categories", admin: true },
   { href: "/admin/fields", label: "Fields", admin: true },
   { href: "/admin/import", label: "Import", admin: true },

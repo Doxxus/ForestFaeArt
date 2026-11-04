@@ -5,7 +5,7 @@ import { IMMUTABLE_CACHE } from "../services/images";
 
 /** Only these widths are offered, so a caller cannot create endless unique (billable) transformations. */
 export const VARIANT_WIDTHS = [320, 640, 960, 1280, 1920] as const;
-const KEY = /^products\/[0-9A-Z]{26}\/[0-9A-Z]{26}\.(?:jpg|png|webp)$/;
+const KEY = /^(?:products|events|content)\/[0-9A-Z]{26}\/[0-9A-Z]{26}\.(?:jpg|png|webp)$/;
 
 /** The smallest offered width that is at least `requested`, or null if the value is not a positive whole number. */
 export function snapWidth(requested: string | null): number | null {

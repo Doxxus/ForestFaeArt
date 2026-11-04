@@ -148,7 +148,7 @@ export default async function ProductPage({
                 ))}
               </ul>
             )}
-            <PhotoUploader productId={product.id} />
+            <PhotoUploader query={`productId=${encodeURIComponent(product.id)}`} />
           </Card>
 
           {/* ---- details ---- */}

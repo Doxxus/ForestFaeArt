@@ -15,7 +15,16 @@ const MODES: Record<(typeof STORE_MODES)[number], { label: string; blurb: string
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
   await requireUser({ admin: true });
   const { saved, error } = await searchParams;
-  const s = await (await serverApi()).settings.get.query();
+  const api = await serverApi();
+  const [s, a] = await Promise.all([api.settings.get.query(), api.site.attention.query()]);
+  const checklist: { done: boolean; text: string; href: string }[] = [
+    { done: a.draftPages.length === 0, text: a.draftPages.length ? `${a.draftPages.length} website ${a.draftPages.length === 1 ? "page has" : "pages have"} placeholder text` : "Website pages are written", href: "/admin/website" },
+    { done: !a.sourcingPlaceholder, text: a.sourcingPlaceholder ? "The sourcing statement is still placeholder text" : "Sourcing statement is written", href: "#sourcingStatement" },
+    { done: a.placeholderCategories === 0, text: a.placeholderCategories ? `${a.placeholderCategories} ${a.placeholderCategories === 1 ? "category has" : "categories have"} placeholder descriptions` : "Category descriptions are written", href: "/admin/categories" },
+    { done: a.publicPieces > 0, text: a.publicPieces > 0 ? `${a.publicPieces} ${a.publicPieces === 1 ? "piece" : "pieces"} will show on the website` : "No pieces will show yet. A piece needs a photo and “Show on the website” ticked", href: "/admin/products?photos=none" },
+    { done: !a.contactMissing, text: a.contactMissing ? "No address is set for inquiries to arrive at" : "Inquiries have somewhere to go", href: "#inquiryEmail" },
+    { done: !a.emailNotSetUp, text: a.emailNotSetUp ? "Email isn't set up yet, so messages from visitors will wait to be sent" : "Email is set up", href: "/admin/inquiries" },
+  ];
 
   return (
     <>
@@ -27,6 +36,16 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           Your website is currently{" "}
           {s.siteLive ? <Badge tone="good">Live</Badge> : <Badge tone="warn">Hidden (Coming soon)</Badge>}
         </p>
+        <h3 className="mb-1 font-medium text-forest">Before you publish</h3>
+        <ul className="mb-4 space-y-1">
+          {checklist.map((c) => (
+            <li key={c.text} className="flex items-start gap-2">
+              <span aria-hidden="true" className={c.done ? "text-moss" : "text-copperdeep"}>{c.done ? "✓" : "○"}</span>
+              <span className="sr-only">{c.done ? "Done: " : "Still to do: "}</span>
+              {c.done ? <span>{c.text}</span> : <a className="text-forest underline" href={c.href}>{c.text}</a>}
+            </li>
+          ))}
+        </ul>
         {s.siteLive ? (
           <form action={setSiteLiveAction}>
             <input type="hidden" name="live" value="0" />

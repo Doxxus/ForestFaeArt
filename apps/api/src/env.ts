@@ -9,6 +9,10 @@ export interface Env {
   WEB_ORIGIN: string;
   /** Shared with the web Worker so it can forward visitor addresses. Optional. Set with `wrangler secret put INTERNAL_SECRET`. */
   INTERNAL_SECRET?: string;
+  /** Resend API key. Without it, outgoing email waits (see ADR 010). Set with `wrangler secret put RESEND_API_KEY`. */
+  RESEND_API_KEY?: string;
+  /** Turnstile secret key for the public contact form. Without it the form relies on rate limiting and a hidden trap field only. */
+  TURNSTILE_SECRET?: string;
   /** Cloudflare Images binding for resized photos. Optional: without it the original is served. */
   IMAGES?: ImagesBinding;
 }

@@ -39,6 +39,27 @@ export const centsToInput = (cents: number | null | undefined) => (cents === nul
 export const dateTime = (d: Date | string | number) =>
   new Intl.DateTimeFormat("en-CA", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Toronto" }).format(new Date(d));
 
+/** The time zones an event might be in. Canadian ones, since the shop sells at Canadian markets. */
+export const EVENT_TIME_ZONES: [string, string][] = [
+  ["America/Toronto", "Eastern (Ontario, Quebec)"],
+  ["America/Halifax", "Atlantic (Nova Scotia, New Brunswick)"],
+  ["America/St_Johns", "Newfoundland"],
+  ["America/Winnipeg", "Central (Manitoba)"],
+  ["America/Regina", "Saskatchewan"],
+  ["America/Edmonton", "Mountain (Alberta)"],
+  ["America/Vancouver", "Pacific (British Columbia)"],
+];
+
+/** "Sat, Dec 5, 2026, 10:00 a.m. to 5:00 p.m." in the event's own zone, or both dates when it spans days. */
+export function eventRange(start: Date | string | number, end: Date | string | number, timeZone: string): string {
+  const s = new Date(start);
+  const e = new Date(end);
+  const date = new Intl.DateTimeFormat("en-CA", { weekday: "short", month: "short", day: "numeric", year: "numeric", timeZone });
+  const time = new Intl.DateTimeFormat("en-CA", { hour: "numeric", minute: "2-digit", timeZone });
+  const sameDay = date.format(s) === date.format(e);
+  return sameDay ? `${date.format(s)}, ${time.format(s)} to ${time.format(e)}` : `${date.format(s)}, ${time.format(s)} to ${date.format(e)}, ${time.format(e)}`;
+}
+
 /** Where the API serves a photo from, optionally resized. */
 export function photoUrl(apiUrl: string, path: string, width?: number) {
   return `${apiUrl}${path}${width ? `?w=${width}` : ""}`;

@@ -523,6 +523,8 @@ export const inquiries = sqliteTable(
     status: text("status", { enum: INQUIRY_STATUSES }).notNull().default("NEW"),
     /** Whether the notification to the inbox was sent. The inquiry itself is always saved first. */
     emailDeliveryStatus: text("email_delivery_status", { enum: DELIVERY_STATUSES }).notNull().default("PENDING"),
+    /** Why the last send failed, for the owner and for debugging. Never contains secrets. */
+    emailError: text("email_error"),
     createdAt: createdAt(),
     repliedAt: ms("replied_at"),
   },
@@ -548,6 +550,7 @@ export const inquiryReplies = sqliteTable(
       .notNull()
       .$defaultFn(() => new Date()),
     deliveryStatus: text("delivery_status", { enum: DELIVERY_STATUSES }).notNull().default("PENDING"),
+    deliveryError: text("delivery_error"),
     providerMessageId: text("provider_message_id"),
   },
   (t) => [index("inquiry_reply_inquiry_idx").on(t.inquiryId), check("inquiry_reply_delivery_check", oneOf(t.deliveryStatus, DELIVERY_STATUSES))],

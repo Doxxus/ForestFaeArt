@@ -26,6 +26,37 @@ export interface ProductImageInfo {
 
 export const mediaPath = (r2Key: string) => `/media/${r2Key}`;
 
+export type SingleImageArea = "events" | "content";
+
+/**
+ * Stores the one picture that belongs to an event or a page: checks and cleans it like a product photo and returns its key.
+ * The caller saves the key and then removes the old file with `removeImageFile`.
+ */
+export async function storeSingleImage(
+  bucket: R2Bucket,
+  area: SingleImageArea,
+  ownerId: string,
+  bytes: Uint8Array,
+): Promise<{ ok: true; key: string; width: number; height: number } | ImageError> {
+  if (bytes.length === 0) return fail("INVALID", "That file is empty.");
+  if (bytes.length > MAX_UPLOAD_BYTES) return fail("TOO_LARGE", `That photo is larger than ${MAX_UPLOAD_BYTES / 1024 / 1024} MB. Please choose a smaller one.`);
+  let clean;
+  try {
+    clean = cleanImage(bytes);
+  } catch (error) {
+    if (error instanceof InvalidImageError) return fail("INVALID", error.message);
+    throw error;
+  }
+  const type = IMAGE_TYPES[clean.kind];
+  const key = `${area}/${ownerId}/${newId()}.${type.ext}`;
+  await bucket.put(key, clean.bytes, { httpMetadata: { contentType: type.contentType, cacheControl: IMMUTABLE_CACHE } });
+  return { ok: true, key, width: clean.width, height: clean.height };
+}
+
+export async function removeImageFile(bucket: R2Bucket, key: string | null | undefined): Promise<void> {
+  if (key) await bucket.delete(key).catch(() => undefined);
+}
+
 const toInfo = (r: typeof productImages.$inferSelect): ProductImageInfo => ({
   id: r.id,
   path: mediaPath(r.r2Key),

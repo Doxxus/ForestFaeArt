@@ -1,6 +1,9 @@
 import { authRouter } from "./routers/auth";
 import { catalogRouter } from "./routers/catalog";
+import { contentRouter, siteRouter } from "./routers/content";
+import { eventsRouter } from "./routers/events";
 import { imagesRouter } from "./routers/images";
+import { inquiriesRouter } from "./routers/inquiries";
 import { importRouter } from "./routers/import";
 import { inventoryRouter } from "./routers/inventory";
 import { productsRouter } from "./routers/products";
@@ -18,11 +21,15 @@ export const appRouter = router({
   settings: settingsRouter,
   products: productsRouter,
   images: imagesRouter,
+  inquiries: inquiriesRouter,
   import: importRouter,
   inventory: inventoryRouter,
   categories: categoriesRouter,
   metadata: metadataRouter,
   catalog: catalogRouter,
+  content: contentRouter,
+  site: siteRouter,
+  events: eventsRouter,
 });
 
 export type AppRouter = typeof appRouter;

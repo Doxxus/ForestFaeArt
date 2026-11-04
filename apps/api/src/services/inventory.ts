@@ -345,6 +345,53 @@ export async function archiveProducts(
 }
 
 // ---------------------------------------------------------------------------
+// Bulk moves (events, undoing an import)
+// ---------------------------------------------------------------------------
+
+export interface Move {
+  id: string;
+  from: ProductStatus;
+  quantity: number;
+  to: ProductStatus;
+  /** Extra statements that must succeed or fail together with this move, for example the event link. */
+  extra?: Batchable[];
+}
+
+/**
+ * Moves many products to new statuses in chunks, one ledger row each. Each chunk is atomic, and a product that changed
+ * after it was read makes its chunk fail with CONFLICT. The transition rules are checked here, so a bulk action can't do
+ * what a single one is not allowed to.
+ */
+export async function moveProducts(
+  db: Db,
+  actor: Actor,
+  moves: Move[],
+  opts: { note: string; eventId?: string },
+): Promise<{ ok: true; moved: number } | InventoryError> {
+  for (const m of moves) {
+    const check = checkTransition({ from: m.from, to: m.to, role: actor.role, reason: opts.note });
+    if (!check.ok) return fail(check.code === "INVALID" ? "INVALID_TRANSITION" : check.code, check.message);
+  }
+  const CHUNK = 25;
+  let moved = 0;
+  for (let i = 0; i < moves.length; i += CHUNK) {
+    const chunk = moves.slice(i, i + CHUNK);
+    const statements: Batchable[] = chunk.flatMap((m) => [
+      db
+        .update(products)
+        .set({ status: m.to })
+        .where(and(eq(products.id, m.id), eq(products.status, m.from), eq(products.quantity, m.quantity))),
+      ledgerAfterUpdate(db, { productId: m.id, fromStatus: m.from, delta: 0, actor, notes: opts.note, eventId: opts.eventId }),
+      ...(m.extra ?? []),
+    ]);
+    const error = await runGuarded(db, statements);
+    if (error) return error;
+    moved += chunk.length;
+  }
+  return { ok: true, moved };
+}
+
+// ---------------------------------------------------------------------------
 // Sale lines (used by the sale service in Phase 6)
 // ---------------------------------------------------------------------------
 

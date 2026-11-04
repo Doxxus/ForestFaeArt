@@ -5,6 +5,7 @@ export * from "./slug";
 export * from "./metadata";
 export * from "./import-csv";
 export * from "./import-template";
+export * from "./events";
 export * from "./enums";
 export * from "./inventory";
 export * from "./settings";

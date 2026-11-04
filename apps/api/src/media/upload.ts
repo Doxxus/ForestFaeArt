@@ -1,5 +1,7 @@
 import type { Env } from "../env";
 import { MAX_UPLOAD_BYTES, addProductImage } from "../services/images";
+import { setEventImage } from "../services/events";
+import { setContentImage } from "../services/content";
 import { makeDb } from "../store";
 import { createContext, optionalUser } from "../trpc";
 
@@ -18,6 +20,23 @@ export async function handleUpload(env: Env, req: Request, url: URL): Promise<Re
   const ctx = createContext(env, req);
   const user = await optionalUser(ctx);
   if (!user) return json({ error: "Please sign in again." }, 401);
+
+  const eventId = url.searchParams.get("eventId");
+  const contentKey = url.searchParams.get("contentKey");
+  if (contentKey) {
+    if (user.role !== "ADMIN") return json({ error: "Only an administrator can change the website pages." }, 403);
+    const bytes = new Uint8Array(await req.arrayBuffer());
+    const result = await setContentImage(makeDb(env.DB), env.MEDIA, user.id, contentKey, bytes);
+    if (!result.ok) return json({ error: result.message }, result.code === "NOT_FOUND" ? 404 : result.code === "TOO_LARGE" ? 413 : 400);
+    return json({ image: { path: result.path } }, 201);
+  }
+  if (eventId) {
+    if (user.role !== "ADMIN") return json({ error: "Only an administrator can change an event." }, 403);
+    const bytes = new Uint8Array(await req.arrayBuffer());
+    const result = await setEventImage(makeDb(env.DB), env.MEDIA, user.id, eventId, bytes);
+    if (!result.ok) return json({ error: result.message }, result.code === "NOT_FOUND" ? 404 : result.code === "TOO_LARGE" ? 413 : 400);
+    return json({ image: { path: result.path } }, 201);
+  }
 
   const productId = url.searchParams.get("productId") ?? "";
   if (!productId || productId.length > 40) return json({ error: "Missing item." }, 400);

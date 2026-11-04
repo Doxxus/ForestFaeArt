@@ -1,7 +1,9 @@
 import { TRPCError, initTRPC } from "@trpc/server";
 import { authorize, verifySessionToken, ROLES, type Role, type SessionClaims } from "@ffa/auth";
 import type { Env } from "./env";
+import { emailProviderFor, type EmailProvider } from "./email/provider";
 import { loadUserRecord, makeDb, type Db } from "./store";
+import { verifyTurnstile } from "./turnstile";
 
 export interface Context {
   env: Env;
@@ -12,6 +14,10 @@ export interface Context {
   source: "ADMIN" | "POS";
   /** Verified lazily so public procedures never pay for it. */
   claims: () => Promise<SessionClaims | null>;
+  /** Null until an email provider is set up. */
+  email: EmailProvider | null;
+  /** The "are you a person" check for public forms. Passes when Turnstile isn't configured. */
+  verifyHuman: (token: string | undefined) => Promise<boolean>;
 }
 
 function timingSafeEqual(a: string, b: string): boolean {
@@ -33,16 +39,19 @@ function clientIp(env: Env, req: Request): string | null {
   return req.headers.get("cf-connecting-ip");
 }
 
-export function createContext(env: Env, req: Request): Context {
+export function createContext(env: Env, req: Request, overrides: Partial<Pick<Context, "email" | "verifyHuman">> = {}): Context {
   const header = req.headers.get("authorization") ?? "";
   const token = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
   let cached: Promise<SessionClaims | null> | undefined;
+  const ip = clientIp(env, req);
   return {
     env,
     db: makeDb(env.DB),
-    ip: clientIp(env, req),
+    ip,
     source: req.headers.get("x-ffa-client") === "pos" ? "POS" : "ADMIN",
     claims: () => (cached ??= token ? verifySessionToken(token, env.SESSION_SECRET) : Promise.resolve(null)),
+    email: "email" in overrides ? (overrides.email ?? null) : emailProviderFor(env),
+    verifyHuman: overrides.verifyHuman ?? (async (t) => (env.TURNSTILE_SECRET ? verifyTurnstile(env.TURNSTILE_SECRET, t, ip) : true)),
   };
 }
 
