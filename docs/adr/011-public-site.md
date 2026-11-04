@@ -1,6 +1,6 @@
 # ADR 011: Public website (Phase 4)
 
-Status: **accepted** (3 Nov 2026, Phase 4). Built, tested and deployed to staging. It was pulled forward from 24 Nov so the QR labels in Phase 5 open a real page. See "Built so far" at the end.
+Status: **accepted** (3 Nov 2026, Phase 4). Built, tested and deployed to staging. It was pulled forward from 24 Nov so the QR labels in Phase 5 open a real page. See "Built so far" at the end. **The look (palette, backgrounds, animation and scenery) is being redone in Phase 9, see [ADR 012](./012-public-site-redesign.md). The structure, routes, data rules and SEO rules here stay as they are.**
 
 ## Decisions
 

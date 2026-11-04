@@ -17,7 +17,7 @@ pnpm build
 ## Layout
 
 - `apps/api`: Cloudflare Worker with the tRPC API, D1 access and sign-in. See [docs/staging.md](./docs/staging.md)
-- `apps/web`: Next.js (vinext) on Cloudflare Workers: the public website (`app/(site)`) and the admin (`app/admin`). See [ADR 009](./docs/adr/009-admin-web-app.md) and [ADR 011](./docs/adr/011-public-site.md)
+- `apps/web`: Next.js (vinext) on Cloudflare Workers: the public website (`app/(site)`) and the admin (`app/admin`). See [ADR 009](./docs/adr/009-admin-web-app.md) and [ADR 011](./docs/adr/011-public-site.md). The public site's redesign is planned for Phase 9, see [ADR 012](./docs/adr/012-public-site-redesign.md)
 - `apps/pos`: Expo Android point-of-sale app. Placeholder screen for now
 - `packages/db`: Drizzle schema and D1 migrations (the full data model, see [ADR 006](./docs/adr/006-data-model.md))
 - `packages/api-types`: type-only export of the API router for the web and POS apps
