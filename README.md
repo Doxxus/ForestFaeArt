@@ -23,7 +23,7 @@ pnpm build
 - `packages/api-types`: type-only export of the API router for the web and POS apps
 - `packages/validators`: shared Zod schemas and pure helpers (SKU, money, IDs)
 - `packages/auth`: first-party auth rules (scrypt passwords, signed session tokens, role checks, lockout, login). See [ADR 003](./docs/adr/003-auth.md)
-- `packages/label-engine`: QR and label rendering. See [ADR 004](./docs/adr/004-label-rendering.md) and [docs/label-print-test.md](./docs/label-print-test.md)
+- `packages/label-engine`: QR and label rendering, templates and layouts, A4 sheet planning and PDF output. See [ADR 004](./docs/adr/004-label-rendering.md), [ADR 013](./docs/adr/013-label-printing.md) and [docs/label-print-test.md](./docs/label-print-test.md)
 - `packages/ui`: brand kit and design tokens: logo directions, the SVG art kit (`pnpm --filter @ffa/ui kit` redraws it into `apps/web/public/kit`, see [ADR 011](./docs/adr/011-public-site.md))
 - `docs/adr`: architecture decision records
 - `spikes/`: throwaway experiments, not part of the workspace

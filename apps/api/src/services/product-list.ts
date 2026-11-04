@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, inArray, not, products, sql, type ProductRow } from "@ffa/db";
-import type { ProductStatus } from "@ffa/validators";
+import type { LabelState, ProductStatus } from "@ffa/validators";
 import type { Db } from "../store";
+import { labelStateSql } from "./labels";
 
 export const PRODUCT_SORTS = ["newest", "oldest", "title", "price_high", "price_low", "sku"] as const;
 export type ProductSort = (typeof PRODUCT_SORTS)[number];
@@ -15,6 +16,10 @@ export interface ProductFilters {
   portfolioVisible?: boolean;
   /** ARCHIVED items are left out unless asked for by status. */
   includeArchived?: boolean;
+  /** Only pieces whose label is in this state (LBL-12). Counted against test or real prints per `labelIsTest`. */
+  labelState?: LabelState;
+  /** Whether labels are being made as tests right now (staging and local), which decides which prints count. */
+  labelIsTest?: boolean;
   sort?: ProductSort;
   limit?: number;
   offset?: number;
@@ -35,6 +40,7 @@ function where(f: ProductFilters) {
     f.listedOnEtsy === undefined ? undefined : eq(products.listedOnEtsy, f.listedOnEtsy),
     f.portfolioVisible === undefined ? undefined : eq(products.portfolioVisible, f.portfolioVisible),
     f.hasPhoto === undefined ? undefined : f.hasPhoto ? sql`${imageCount} > 0` : sql`${imageCount} = 0`,
+    f.labelState ? sql`${labelStateSql(f.labelIsTest ?? true)} = ${f.labelState}` : undefined,
   );
 }
 
@@ -51,13 +57,14 @@ export interface ProductListRow {
   product: ProductRow;
   imageCount: number;
   thumbnailKey: string | null;
+  labelState: LabelState;
 }
 
 export async function listProducts(db: Db, f: ProductFilters): Promise<{ rows: ProductListRow[]; total: number }> {
   const condition = where(f);
   const [rows, count] = await Promise.all([
     db
-      .select({ product: products, imageCount, thumbnailKey: thumbKey })
+      .select({ product: products, imageCount, thumbnailKey: thumbKey, labelState: labelStateSql(f.labelIsTest ?? true) })
       .from(products)
       .where(condition)
       .orderBy(...ORDER[f.sort ?? "newest"])

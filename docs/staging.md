@@ -96,6 +96,16 @@ The public site is part of the web app ([ADR 011](./adr/011-public-site.md)). Th
 - **The art kit** is redrawn with `pnpm --filter @ffa/ui kit` (files in `apps/web/public/kit`, plus the favicon, touch icon and link-preview picture). The test in `packages/ui` fails if a committed file is out of date. Look at it all at `/admin/style-guide`.
 - **To test the public site locally:** start the API (`pnpm dev` in `apps/api`), start the web app (`pnpm dev` in `apps/web`), publish the site in Settings, and open http://localhost:3100.
 
+## Labels and the B1 printer
+
+Label printing is in the admin under **Labels** ([ADR 013](./adr/013-label-printing.md)). Things to know:
+
+- **Staging labels are test labels.** Anything made while the environment is not production, or while *Settings, Label web address* is not `https://forestfae.ca`, is stamped **TEST** and recorded as a test print. Test prints and real prints never count for each other, so printing a batch on staging does not make a real piece look labelled once production is live.
+- **To scan-test labels against staging**, set *Label web address* to `https://ffa-web-staging.forestfaefolk.workers.dev`, print, scan with a phone, then set it back to `https://forestfae.ca`. (A signed-in phone is sent to the piece, an anonymous one sees the friendly "not on the website yet" page.)
+- **Testing the B1 over Bluetooth** (spike 4, needs the Android phone and the B1): sign in on the phone in **Chrome**, open `/admin/labels/printer-test`, switch the B1 on, close the NIIMBOT app (it holds the connection), press *Connect*, pick the printer, then print the test card. If it prints sideways, change *Direction*. Then print a real label from **Labels** with *Print on the B1 (Bluetooth)*. Try a 40 x 30 and a 50 x 30 label. Send the connection log if anything fails.
+- **If Bluetooth does not work**, the approved fallback is *Pictures for the NIIMBOT app*: it makes one PNG per label (a ZIP for several) that you open in the NIIMBOT app, which is what passed the print test on 31 Oct.
+- **A4 sheets:** choose *A4 sheet*, set the margin, gap, cutting guides and start position, and print the PDF at **Actual size / 100%**, never "Fit to page".
+
 ## Not set up yet
 
 - A staging custom domain such as `staging.forestfae.ca` (waits for the zone build-out).

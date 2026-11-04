@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { CONTENT_KEYS, getContent, isContentKey, listContent, removeContentImage, updateContent } from "../services/content";
 import { loadAttention } from "../services/attention";
+import { loadLabelContext } from "../services/labels";
 import { listEvents } from "../services/events";
 import { loadPortfolio, sitemapPieces } from "../services/portfolio";
 import { loadSettings } from "../services/settings";
@@ -49,7 +50,7 @@ export const contentRouter = router({
 
 export const siteRouter = router({
   /** What needs attention, for the dashboard and the publishing checklist. */
-  attention: staffProcedure.query(({ ctx }) => loadAttention(ctx.db, { emailConfigured: ctx.email !== null })),
+  attention: staffProcedure.query(async ({ ctx }) => loadAttention(ctx.db, { emailConfigured: ctx.email !== null, labels: await loadLabelContext(ctx.db, ctx.env) })),
 
   /** Everything a search engine may be told about. Empty until the site is published. Signed-in preview does not count. */
   sitemap: publicProcedure.query(async ({ ctx }) => {

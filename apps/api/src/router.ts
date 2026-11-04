@@ -6,6 +6,7 @@ import { imagesRouter } from "./routers/images";
 import { inquiriesRouter } from "./routers/inquiries";
 import { importRouter } from "./routers/import";
 import { inventoryRouter } from "./routers/inventory";
+import { labelsRouter } from "./routers/labels";
 import { productsRouter } from "./routers/products";
 import { settingsRouter } from "./routers/settings";
 import { categoriesRouter, metadataRouter } from "./routers/taxonomy";
@@ -30,6 +31,7 @@ export const appRouter = router({
   content: contentRouter,
   site: siteRouter,
   events: eventsRouter,
+  labels: labelsRouter,
 });
 
 export type AppRouter = typeof appRouter;

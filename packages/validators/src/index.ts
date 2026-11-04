@@ -10,3 +10,4 @@ export * from "./enums";
 export * from "./inventory";
 export * from "./settings";
 export * from "./portfolio";
+export * from "./labels";

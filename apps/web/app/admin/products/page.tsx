@@ -19,7 +19,7 @@ const SORTS = [
   ["sku", "SKU"],
 ] as const;
 
-type Params = { q?: string; status?: string; photos?: string; etsy?: string; category?: string; sort?: string; offset?: string };
+type Params = { q?: string; status?: string; photos?: string; etsy?: string; category?: string; labels?: string; sort?: string; offset?: string };
 
 export default async function ProductsPage({ searchParams }: { searchParams: Promise<Params> }) {
   await requireUser();
@@ -37,6 +37,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
       hasPhoto: p.photos === "none" ? false : p.photos === "has" ? true : undefined,
       listedOnEtsy: p.etsy === "1" ? true : undefined,
       categoryId: p.category || undefined,
+      labelState: p.labels === "NONE" || p.labels === "STALE" ? p.labels : undefined,
       sort,
       limit: PAGE_SIZE,
       offset,
@@ -51,7 +52,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
     const text = qs.toString();
     return `/admin/products${text ? `?${text}` : ""}`;
   };
-  const filtered = Boolean(p.q || status || p.photos || p.etsy || p.category);
+  const filtered = Boolean(p.q || status || p.photos || p.etsy || p.category || p.labels);
 
   return (
     <>
@@ -76,7 +77,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
               ) : null}
             </div>
           </div>
-          <details open={Boolean(status || p.photos || p.etsy || p.category || (p.sort && p.sort !== "newest"))}>
+          <details open={Boolean(status || p.photos || p.etsy || p.category || p.labels || (p.sort && p.sort !== "newest"))}>
             <summary className="mb-3 cursor-pointer font-medium text-forest">More filters and sorting</summary>
             <div className="grid gap-x-4 sm:grid-cols-2 lg:grid-cols-3">
               <Field label="Status" htmlFor="status">
@@ -121,6 +122,13 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
                   <option value="1">Also listed on Etsy</option>
                 </Select>
               </Field>
+              <Field label="Labels" htmlFor="labels">
+                <Select id="labels" name="labels" defaultValue={p.labels ?? ""}>
+                  <option value="">All</option>
+                  <option value="NONE">No label printed yet</option>
+                  <option value="STALE">Label out of date</option>
+                </Select>
+              </Field>
             </div>
           </details>
         </form>
@@ -131,35 +139,47 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
           <p className="text-moss">{filtered ? "Nothing matches that search." : "No pieces yet. Add your first one, or import your spreadsheet from Import."}</p>
         </Card>
       ) : (
-        <ul className="divide-y divide-stone overflow-hidden rounded-xl border border-stone bg-parchment">
-          {list.items.map((item) => (
-            <li key={item.id}>
-              <Link href={`/admin/products/${item.sku}`} className="flex items-center gap-3 p-3 hover:bg-cream sm:gap-4">
-                <div className="size-16 shrink-0 overflow-hidden rounded-lg border border-stone bg-cream sm:size-20">
-                  {item.thumbnailPath ? (
-                    <img src={photoUrl(API_URL, item.thumbnailPath, 320)} alt="" loading="lazy" className="size-full object-cover" />
-                  ) : (
-                    <PhotoPlaceholder className="size-full" />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-lg font-medium text-forest">{item.title}</div>
-                  <div className="text-sm text-moss">
-                    {item.sku}
-                    {item.quantity > 1 ? ` · ${item.quantity} in stock` : ""}
+        <form method="GET" action="/admin/labels">
+          <div className="mb-2 flex flex-wrap items-center gap-3">
+            <Button type="submit" variant="secondary">
+              Print labels for the ticked pieces
+            </Button>
+            <span className="text-sm text-moss">Tick pieces below, or use Labels in the menu to print many at once.</span>
+          </div>
+          <ul className="divide-y divide-stone overflow-hidden rounded-xl border border-stone bg-parchment">
+            {list.items.map((item) => (
+              <li key={item.id} className="flex items-center">
+                <label className="flex min-h-16 shrink-0 cursor-pointer items-center pl-3 pr-1">
+                  <input type="checkbox" name="ids" value={item.id} className="size-5 accent-forest" aria-label={`Select ${item.title} for labels`} />
+                </label>
+                <Link href={`/admin/products/${item.sku}`} className="flex min-w-0 flex-1 items-center gap-3 p-3 hover:bg-cream sm:gap-4">
+                  <div className="size-16 shrink-0 overflow-hidden rounded-lg border border-stone bg-cream sm:size-20">
+                    {item.thumbnailPath ? (
+                      <img src={photoUrl(API_URL, item.thumbnailPath, 320)} alt="" loading="lazy" className="size-full object-cover" />
+                    ) : (
+                      <PhotoPlaceholder className="size-full" />
+                    )}
                   </div>
-                  <div className="mt-1 flex flex-wrap gap-1.5">
-                    <Badge tone={STATUS_TONE[item.status]}>{STATUS_LABELS[item.status]}</Badge>
-                    {item.imageCount === 0 ? <Badge tone="warn">Needs photos</Badge> : null}
-                    {item.listedOnEtsy ? <Badge>On Etsy</Badge> : null}
-                    {item.featured ? <Badge>Featured</Badge> : null}
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-lg font-medium text-forest">{item.title}</div>
+                    <div className="text-sm text-moss">
+                      {item.sku}
+                      {item.quantity > 1 ? ` · ${item.quantity} in stock` : ""}
+                    </div>
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      <Badge tone={STATUS_TONE[item.status]}>{STATUS_LABELS[item.status]}</Badge>
+                      {item.imageCount === 0 ? <Badge tone="warn">Needs photos</Badge> : null}
+                      {item.labelState === "STALE" ? <Badge tone="bad">Label out of date</Badge> : null}
+                      {item.listedOnEtsy ? <Badge>On Etsy</Badge> : null}
+                      {item.featured ? <Badge>Featured</Badge> : null}
+                    </div>
                   </div>
-                </div>
-                <div className="shrink-0 text-right text-lg font-semibold text-forest">{money(item.priceCents)}</div>
-              </Link>
-            </li>
-          ))}
-        </ul>
+                  <div className="shrink-0 text-right text-lg font-semibold text-forest">{money(item.priceCents)}</div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </form>
       )}
 
       {list.total > PAGE_SIZE ? (

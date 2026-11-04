@@ -14,8 +14,10 @@
   },
   "dependencies": {
     "@ffa/api-types": "workspace:*",
+    "@ffa/label-engine": "workspace:*",
     "@ffa/ui": "workspace:*",
     "@ffa/validators": "workspace:*",
+    "@mmote/niimbluelib": "0.49.0",
     "@trpc/client": "11.22.1",
     "@vinext/cloudflare": "1.3.0",
     "heic2any": "0.0.4",

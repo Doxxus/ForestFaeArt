@@ -2,6 +2,7 @@ import { sql } from "@ffa/db";
 import { isPlaceholderText } from "@ffa/validators";
 import { listCategories } from "./catalogue";
 import { listContent } from "./content";
+import { labelCounts, type LabelContext } from "./labels";
 import { loadSettings } from "./settings";
 import type { Db } from "../store";
 
@@ -20,6 +21,10 @@ export interface Attention {
   reservedPieces: number;
   draftPieces: number;
   etsySoldToRemove: number;
+  /** Pieces that have never had a label printed (counted for test or real labels, per the environment). */
+  unlabelledPieces: number;
+  /** Pieces whose title or price changed after their label was printed (LBL-12). */
+  staleLabels: number;
   newInquiries: number;
   failedEmails: number;
   /** No email provider is set up yet, so messages wait instead of being sent. */
@@ -31,8 +36,8 @@ export interface Attention {
 const n = (rows: { n: number }[]) => rows[0]?.n ?? 0;
 
 /** Everything that needs the owner's eye, for the dashboard and the "Publish my website" checklist (WEB-18). */
-export async function loadAttention(db: Db, opts: { emailConfigured: boolean }): Promise<Attention> {
-  const [settings, pages, categories] = await Promise.all([loadSettings(db), listContent(db), listCategories(db)]);
+export async function loadAttention(db: Db, opts: { emailConfigured: boolean; labels: LabelContext }): Promise<Attention> {
+  const [settings, pages, categories, labels] = await Promise.all([loadSettings(db), listContent(db), listCategories(db), labelCounts(db, opts.labels)]);
   const count = (query: ReturnType<typeof sql>) => db.all<{ n: number }>(query).then(n);
   const [publicPieces, needPhotos, missingAlt, reserved, drafts, etsy, newInquiries, failedEmails, waiting] = await Promise.all([
     count(sql`SELECT COUNT(*) AS n FROM product p WHERE p.status IN ('AVAILABLE','AT_EVENT','PENDING_PAYMENT','RESERVED','SOLD') AND p.portfolio_visible = 1
@@ -58,6 +63,8 @@ export async function loadAttention(db: Db, opts: { emailConfigured: boolean }):
     reservedPieces: reserved,
     draftPieces: drafts,
     etsySoldToRemove: etsy,
+    unlabelledPieces: labels.unlabelled,
+    staleLabels: labels.stale,
     newInquiries,
     failedEmails,
     emailNotSetUp: !opts.emailConfigured,

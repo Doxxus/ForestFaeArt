@@ -45,12 +45,15 @@ export default async function ProductPage({
     if (errorCode(e) === "NOT_FOUND") notFound();
     throw e;
   }
-  const [categories, fields, images, history] = await Promise.all([
+  const [categories, fields, images, history, labelHistory, labelInfo] = await Promise.all([
     api.categories.list.query({ includeArchived: false }),
     api.metadata.listFields.query({ includeArchived: false }),
     api.images.list.query({ productId: product.id }),
     api.products.history.query({ productId: product.id }),
+    api.labels.history.query({ productId: product.id }),
+    api.labels.prepare.query({ source: "ids", productIds: [product.id] }).catch(() => null),
   ]);
+  const labelState = labelInfo?.items[0]?.state ?? "NONE";
 
   const isAdmin = user.role === "ADMIN";
   const cost = "costCents" in product ? (product.costCents as number | null) : null;
@@ -315,6 +318,27 @@ export default async function ProductPage({
                 Update stock
               </Button>
             </form>
+          </Card>
+
+          {/* ---- label ---- */}
+          <Card title="Label">
+            <p className="mb-3">
+              {labelState === "STALE" ? <Badge tone="bad">Label out of date</Badge> : labelState === "CURRENT" ? <Badge tone="good">Label up to date</Badge> : <Badge>No label yet</Badge>}
+            </p>
+            {labelState === "STALE" ? <p className="mb-3 text-danger">The title or price changed after the last label was printed. Reprint it so the tag matches.</p> : null}
+            <Link href={`/admin/labels?ids=${product.id}`} className={buttonClass(labelState === "STALE" ? "primary" : "secondary")}>
+              {labelState === "NONE" ? "Print a label" : "Reprint the label"}
+            </Link>
+            {labelHistory.length ? (
+              <ul className="mt-4 space-y-1 text-sm text-moss">
+                {labelHistory.slice(0, 5).map((h) => (
+                  <li key={h.id}>
+                    {dateTime(h.at)}: {h.copies} {h.copies === 1 ? "label" : "labels"} ({h.printer === "NIIMBOT_B1" ? "B1" : h.printer}) at {money(h.priceCents)}
+                    {h.isTest ? " · test" : ""}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </Card>
 
           {/* ---- categories ---- */}

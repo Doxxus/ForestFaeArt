@@ -1,8 +1,9 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { desc, eq, inventoryTransactions, or, products, users } from "@ffa/db";
-import { PRODUCT_STATUSES } from "@ffa/validators";
+import { LABEL_STATES, PRODUCT_STATUSES } from "@ffa/validators";
 import { inventoryError, serviceError } from "../errors";
+import { loadLabelContext } from "../services/labels";
 import { mediaPath } from "../services/images";
 import { PRODUCT_SORTS, listProducts } from "../services/product-list";
 import {
@@ -34,19 +35,22 @@ export const productsRouter = router({
         hasPhoto: z.boolean().optional(),
         portfolioVisible: z.boolean().optional(),
         includeArchived: z.boolean().optional(),
+        labelState: z.enum(LABEL_STATES).optional(),
         sort: z.enum(PRODUCT_SORTS).default("newest"),
         limit: z.number().int().min(1).max(100).default(50),
         offset: z.number().int().min(0).max(100_000).default(0),
       }),
     )
     .query(async ({ ctx, input }) => {
-      const { rows, total } = await listProducts(ctx.db, input);
+      const label = await loadLabelContext(ctx.db, ctx.env);
+      const { rows, total } = await listProducts(ctx.db, { ...input, labelIsTest: label.isTest });
       return {
         total,
         items: rows.map((r) => ({
           ...projectProduct(r.product, ctx.user.role),
           imageCount: r.imageCount,
           thumbnailPath: r.thumbnailKey ? mediaPath(r.thumbnailKey) : null,
+          labelState: r.labelState,
         })),
       };
     }),
