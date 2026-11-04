@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+import { eq, users } from "@ffa/db";
 import { z } from "zod";
 import { MAX_PASSWORD_LENGTH, POS_SESSION_SECONDS, WEB_SESSION_SECONDS, login } from "@ffa/auth";
 import { userError } from "../errors";
@@ -55,7 +56,10 @@ export const authRouter = router({
       return { token: result.token, user: result.user };
     }),
 
-  me: staffProcedure.query(({ ctx }) => ({ id: ctx.user.id, role: ctx.user.role })),
+  me: staffProcedure.query(async ({ ctx }) => {
+    const row = await ctx.db.select({ name: users.name, email: users.email }).from(users).where(eq(users.id, ctx.user.id)).get();
+    return { id: ctx.user.id, role: ctx.user.role, name: row?.name ?? "", email: row?.email ?? "" };
+  }),
 
   /** Lets the set-password page show the right wording, or "expired", before the person types anything. */
   tokenStatus: publicProcedure.input(z.object({ token })).query(async ({ ctx, input }) => {

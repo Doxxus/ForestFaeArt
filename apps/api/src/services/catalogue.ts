@@ -17,9 +17,11 @@ import {
   decodeMetadataValue,
   metadataKeyFromLabel,
   newId,
+  parseOptions,
   slugify,
   uniqueSlug,
   validateMetadataValue,
+  type MetadataFieldDef,
   type MetadataFieldType,
 } from "@ffa/validators";
 import { auditStatement } from "./audit";
@@ -372,6 +374,7 @@ export async function setProductMetadata(
   actorId: string,
   productId: string,
   values: Record<string, unknown>,
+  opts: { addNewChoices?: boolean } = {},
 ): Promise<{ ok: true } | ServiceError> {
   const product = await db.select({ id: products.id }).from(products).where(eq(products.id, productId)).get();
   if (!product) return fail("NOT_FOUND", "That item doesn't exist.");
@@ -383,7 +386,22 @@ export async function setProductMetadata(
   for (const [key, input] of Object.entries(values)) {
     const field = byKey.get(key);
     if (!field) return fail("INVALID", `Unknown field: ${key}`);
-    const result = validateMetadataValue(field, input);
+
+    let working: MetadataFieldDef = field;
+    if (opts.addNewChoices && (field.type === "SELECT" || field.type === "MULTI_SELECT")) {
+      // A new tag or collection typed on a piece becomes a choice for everyone, in the same save.
+      const existing = parseOptions(field.options);
+      const wanted = (Array.isArray(input) ? input : [input]).filter((v): v is string => typeof v === "string").map((v) => v.trim()).filter(Boolean);
+      const extra = wanted.filter((v, i) => !existing.some((o) => o.toLowerCase() === v.toLowerCase()) && wanted.findIndex((w) => w.toLowerCase() === v.toLowerCase()) === i);
+      if (extra.length) {
+        if (extra.some((v) => v.length > 80) || existing.length + extra.length > 200) return fail("INVALID", `${field.label}: that choice is too long, or there are too many choices.`);
+        const options = JSON.stringify([...existing, ...extra]);
+        working = { ...field, options };
+        statements.push(db.update(metadataFields).set({ options }).where(eq(metadataFields.id, field.id)));
+      }
+    }
+
+    const result = validateMetadataValue(working, input);
     if (!result.ok) return fail("INVALID", result.message);
     diff[key] = result.value;
     statements.push(

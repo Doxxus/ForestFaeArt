@@ -1,12 +1,58 @@
 @import "tailwindcss";
 
+/* Brand tokens from packages/ui/src/tokens.ts (ADR 005). tokens.test.ts in this app fails if they drift apart. */
+@theme {
+  --color-cream: #F4EFE3;
+  --color-parchment: #EFE6CF;
+  --color-stone: #D6CFBF;
+  --color-ink: #2B1E16;
+  --color-forest: #2F4A3A;
+  --color-moss: #556B3A;
+  --color-fern: #6F8A55;
+  --color-sage: #B7C3A3;
+  --color-champagne: #E8D9B0;
+  --color-gold: #D9B15A;
+  --color-copper: #B4733A;
+  --color-copperdeep: #86522A;
+  /* Status colours that keep text at AA on their own tint. */
+  --color-danger: #8A2D22;
+  --color-dangerbg: #F3DDD7;
+  --color-okbg: #DDE7CF;
+
+  --font-display: "Marcellus", Georgia, "Times New Roman", serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+@font-face {
+  font-family: "Marcellus";
+  src: url("/fonts/Marcellus-Regular.ttf") format("truetype");
+  font-display: swap;
+}
+
 :root {
   color-scheme: light;
-  background: #f4efe3;
-  color: #24301f;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 body {
   margin: 0;
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Visible keyboard focus everywhere. */
+:focus-visible {
+  outline: 3px solid var(--color-copperdeep);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

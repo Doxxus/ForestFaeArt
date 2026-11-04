@@ -5,7 +5,8 @@ export default defineConfig({
     name: "ffa-web-staging",
     entrypoint: "vinext/server/fetch-handler",
     compatibilityDate: "2026-10-30",
-    compatibilityFlags: ["nodejs_compat"],
+    // Lets this Worker call the API's public workers.dev address. Without it Cloudflare refuses (error 1042).
+    compatibilityFlags: ["nodejs_compat", "global_fetch_strictly_public"],
     assets: {
       htmlHandling: "none",
       notFoundHandling: "none",

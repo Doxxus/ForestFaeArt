@@ -233,15 +233,31 @@ describe("serving photos", () => {
   });
 });
 
+describe("inventory history", () => {
+  it("lists every change newest first, with who made it", async () => {
+    const p = await newProduct("History piece");
+    await staff.products.changeStatus({ productId: p.id, to: "RESERVED", reason: "Held" });
+    await staff.products.adjustStock({ productId: p.id, newQuantity: 3, reason: "Found more" });
+    const h = await staff.products.history({ productId: p.id });
+    expect(h.map((r) => [r.toStatus, r.quantityDelta, r.quantityAfter, r.notes, r.user])).toEqual([
+      ["RESERVED", 2, 3, "Found more", "S"],
+      ["RESERVED", 0, 1, "Held", "S"],
+      ["AVAILABLE", 0, 1, "", "A"],
+      ["DRAFT", 1, 1, "Created", "A"],
+    ]);
+    expect((await rejection(as().products.history({ productId: p.id }))).code).toBe("UNAUTHORIZED");
+  });
+});
+
 describe("inventory list and dashboard", () => {
   it("finds the pieces that need photos, and the queue shrinks as photos arrive", async () => {
-    const withPhoto = await newProduct("Has photo piece");
-    const without = await newProduct("Needs photo piece");
+    const withPhoto = await newProduct("Has photo zqx");
+    const without = await newProduct("Needs photo zqx");
     await upload(withPhoto.id, png());
-    const queue = await staff.products.list({ hasPhoto: false, q: "piece" });
+    const queue = await staff.products.list({ hasPhoto: false, q: "zqx" });
     expect(queue.items.map((i) => i.id)).toEqual([without.id]);
     expect(queue.items[0]).toMatchObject({ imageCount: 0, thumbnailPath: null });
-    const done = await staff.products.list({ hasPhoto: true, q: "piece" });
+    const done = await staff.products.list({ hasPhoto: true, q: "zqx" });
     expect(done.items[0]).toMatchObject({ id: withPhoto.id, imageCount: 1 });
     expect(done.items[0]!.thumbnailPath).toMatch(/^\/media\/products\//);
   });

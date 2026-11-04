@@ -8,6 +8,7 @@ Staging lives in the dedicated, project-only Cloudflare account (HAND-0, HAND-2)
 | Web Worker | `ffa-web-staging` | https://ffa-web-staging.forestfaefolk.workers.dev. Placeholder page, `noindex` and `robots.txt` disallow all |
 | D1 database | `ffa-staging` | id `8669cdae-fe0c-4f3b-aca1-b0ffb443068b`, bound as `DB` in the API Worker |
 | Worker secret | `SESSION_SECRET` | On `ffa-api-staging`. Random 48 bytes, set with `wrangler secret put`. Never stored in the repo |
+| Worker secret | `INTERNAL_SECRET` | On **both** `ffa-api-staging` and `ffa-web-staging` (same value). Lets the web app forward visitor addresses to the API for rate limiting ([ADR 009](./adr/009-admin-web-app.md)). Rotate with `wrangler secret put INTERNAL_SECRET --env staging` and `... --name ffa-web-staging` |
 | R2 bucket | `ffa-staging-media` | Bound as `MEDIA` in the API Worker. `/health` checks it. Public access is off (images will be served through the API or Worker, never a public bucket) |
 
 The `workers.dev` subdomain `forestfaefolk` was already registered on the account and cannot be changed.
@@ -34,6 +35,14 @@ Run these from `apps/api` unless noted.
 | Change the staging secret | `wrangler secret put SESSION_SECRET --env staging` (this signs everyone out) |
 
 After changing `packages/db/src/schema.ts`, run `pnpm db:generate` in `packages/db` to create a migration, review the SQL, then apply it. Hand-written SQL (triggers, reference data) goes in a migration made with `pnpm exec drizzle-kit generate --custom --name <name>`.
+
+## Running everything locally
+
+1. `pnpm install`, then in `apps/api`: `pnpm db:migrate:local`, create a local admin with `create-user` (see its header), and start the API with `pnpm dev` (port 8787).
+2. Create `apps/web/.env.development.local` containing `VITE_API_URL=http://localhost:8787` (git-ignored). Without it, the dev server uses the staging API.
+3. In `apps/web`: `pnpm dev`. Open the printed address and sign in.
+
+The local database lives in `apps/api/.wrangler` (git-ignored) and never touches staging.
 
 ## Database state
 

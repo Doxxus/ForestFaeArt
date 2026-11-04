@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { eq, or, products } from "@ffa/db";
+import { desc, eq, inventoryTransactions, or, products, users } from "@ffa/db";
 import { PRODUCT_STATUSES } from "@ffa/validators";
 import { inventoryError, serviceError } from "../errors";
 import { mediaPath } from "../services/images";
@@ -104,14 +104,43 @@ export const productsRouter = router({
     return { ok: true as const };
   }),
 
-  /** Values by field key. Null or an empty value clears the field. */
+  /** Values by field key. Null or an empty value clears the field. `addNewChoices` turns a new tag or collection into a choice. */
   setMetadata: staffProcedure
-    .input(z.object({ productId, values: z.record(z.string().max(60), z.union([z.string().max(600), z.number(), z.boolean(), z.array(z.string().max(80)).max(200), z.null()])) }))
+    .input(
+      z.object({
+        productId,
+        values: z.record(z.string().max(60), z.union([z.string().max(600), z.number(), z.boolean(), z.array(z.string().max(80)).max(200), z.null()])),
+        addNewChoices: z.boolean().default(false),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      const result = await setProductMetadata(ctx.db, ctx.user.id, input.productId, input.values);
+      const result = await setProductMetadata(ctx.db, ctx.user.id, input.productId, input.values, { addNewChoices: input.addNewChoices });
       if (!result.ok) throw serviceError(result);
       return { ok: true as const };
     }),
+
+  /** The piece's inventory history, newest first (INV-6). */
+  history: staffProcedure.input(z.object({ productId })).query(async ({ ctx, input }) => {
+    const rows = await ctx.db
+      .select({
+        id: inventoryTransactions.id,
+        at: inventoryTransactions.at,
+        user: users.name,
+        fromStatus: inventoryTransactions.fromStatus,
+        toStatus: inventoryTransactions.toStatus,
+        quantityDelta: inventoryTransactions.quantityDelta,
+        quantityAfter: inventoryTransactions.quantityAfter,
+        notes: inventoryTransactions.notes,
+        source: inventoryTransactions.source,
+      })
+      .from(inventoryTransactions)
+      .leftJoin(users, eq(users.id, inventoryTransactions.userId))
+      .where(eq(inventoryTransactions.productId, input.productId))
+      .orderBy(desc(inventoryTransactions.at), desc(inventoryTransactions.id))
+      .limit(200)
+      .all();
+    return rows;
+  }),
 
   create: staffProcedure
     .input(

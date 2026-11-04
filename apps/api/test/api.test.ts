@@ -65,7 +65,7 @@ let staffToken: string;
 describe("signing in", () => {
   it("signs in and returns a session that works", async () => {
     adminToken = await signIn("Owner@Example.com", ADMIN_PASSWORD);
-    expect(await api({ token: adminToken }).auth.me()).toEqual({ id: "U_ADMIN", role: "ADMIN" });
+    expect(await api({ token: adminToken }).auth.me()).toEqual({ id: "U_ADMIN", role: "ADMIN", name: "Owner", email: "owner@example.com" });
   });
 
   it("gives the same answer for a wrong password and an unknown account, and audits both", async () => {
@@ -267,6 +267,22 @@ describe("public catalog", () => {
     const [row] = await db.all<{ id: string; sku: string }>(sql`SELECT id, sku FROM product WHERE title = 'Luna Moth'`);
     await admin.products.changeStatus({ productId: row!.id, to: "PENDING_PAYMENT" });
     expect((await api().catalog.get({ skuOrSlug: row!.sku })).status).toBe("AVAILABLE");
+  });
+});
+
+describe("client address", () => {
+  const ctxFor = (headers: Record<string, string>, secret: string | undefined = "s3cret-".padEnd(32, "x")) =>
+    createContext({ ...env, INTERNAL_SECRET: secret }, new Request("https://api.test/trpc", { headers }));
+
+  it("uses Cloudflare's address by default", () => {
+    expect(ctxFor({ "cf-connecting-ip": "203.0.113.7" }).ip).toBe("203.0.113.7");
+  });
+  it("believes a forwarded address only with the shared secret", () => {
+    const secret = "s3cret-".padEnd(32, "x");
+    expect(ctxFor({ "cf-connecting-ip": "10.0.0.1", "x-ffa-client-ip": "198.51.100.5", "x-ffa-internal": secret }).ip).toBe("198.51.100.5");
+    expect(ctxFor({ "cf-connecting-ip": "10.0.0.1", "x-ffa-client-ip": "198.51.100.5" }).ip).toBe("10.0.0.1");
+    expect(ctxFor({ "cf-connecting-ip": "10.0.0.1", "x-ffa-client-ip": "198.51.100.5", "x-ffa-internal": "wrong" }).ip).toBe("10.0.0.1");
+    expect(ctxFor({ "cf-connecting-ip": "10.0.0.1", "x-ffa-client-ip": "198.51.100.5", "x-ffa-internal": "" }, undefined).ip).toBe("10.0.0.1");
   });
 });
 

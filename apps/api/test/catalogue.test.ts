@@ -193,6 +193,22 @@ describe("metadata", () => {
     expect((await rejection(admin.metadata.createField({ label: "wing span (CM)", type: "TEXT" }))).code).toBe("CONFLICT");
   });
 
+  it("adds a new choice while saving a value, only when asked to", async () => {
+    const p = await publishedProduct("New choice piece");
+    const refused = await rejection(staff.products.setMetadata({ productId: p.id, values: { tags: ["brand new"] } }));
+    expect(refused.code).toBe("BAD_REQUEST");
+    await staff.products.setMetadata({ productId: p.id, values: { tags: ["Brand New", "brand new"], insect_type: "Mantis" }, addNewChoices: true });
+    const got = await staff.products.get({ idOrSku: p.sku });
+    expect(got.metadata.map((m) => [m.key, m.value])).toEqual([["insect_type", "Mantis"], ["tags", ["Brand New"]]]);
+    const fields = await admin.metadata.listFields();
+    expect(JSON.parse(fields.find((f) => f.key === "tags")!.options)).toContain("Brand New");
+    expect(JSON.parse(fields.find((f) => f.key === "insect_type")!.options)).toContain("Mantis");
+    // An invalid value still rolls everything back, including the new choice.
+    const bad = await rejection(staff.products.setMetadata({ productId: p.id, values: { tags: ["another one"], creation_year: "next year" }, addNewChoices: true }));
+    expect(bad.code).toBe("BAD_REQUEST");
+    expect(JSON.parse((await admin.metadata.listFields()).find((f) => f.key === "tags")!.options)).not.toContain("another one");
+  });
+
   it("archiving a field hides it but keeps the stored values", async () => {
     const p = await publishedProduct("Archive field piece");
     await staff.products.setMetadata({ productId: p.id, values: { frame_size: "8 x 10 in" } });

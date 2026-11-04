@@ -17,6 +17,12 @@ out
 .env
 .env.*
 !.env.example
+# The web app's per-environment settings hold only a public API address, no secrets.
+!apps/web/.env.development
+!apps/web/.env.production
 *.log
 build_prompt.md
 functional_requirements.md
+# Local overrides (for example pointing the web app at a local API)
+.env.local
+.env.*.local

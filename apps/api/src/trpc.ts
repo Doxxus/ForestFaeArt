@@ -14,6 +14,25 @@ export interface Context {
   claims: () => Promise<SessionClaims | null>;
 }
 
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+/**
+ * The client address for rate limiting. Requests from our own web Worker arrive from Cloudflare, not from the visitor,
+ * so the web app forwards the visitor's address in x-ffa-client-ip. That header is believed only when the request also
+ * carries the shared INTERNAL_SECRET, so nobody else can choose their own address.
+ */
+function clientIp(env: Env, req: Request): string | null {
+  const forwarded = req.headers.get("x-ffa-client-ip");
+  const secret = req.headers.get("x-ffa-internal");
+  if (forwarded && secret && env.INTERNAL_SECRET && timingSafeEqual(secret, env.INTERNAL_SECRET)) return forwarded.slice(0, 64);
+  return req.headers.get("cf-connecting-ip");
+}
+
 export function createContext(env: Env, req: Request): Context {
   const header = req.headers.get("authorization") ?? "";
   const token = header.startsWith("Bearer ") ? header.slice(7).trim() : "";
@@ -21,7 +40,7 @@ export function createContext(env: Env, req: Request): Context {
   return {
     env,
     db: makeDb(env.DB),
-    ip: req.headers.get("cf-connecting-ip"),
+    ip: clientIp(env, req),
     source: req.headers.get("x-ffa-client") === "pos" ? "POS" : "ADMIN",
     claims: () => (cached ??= token ? verifySessionToken(token, env.SESSION_SECRET) : Promise.resolve(null)),
   };
