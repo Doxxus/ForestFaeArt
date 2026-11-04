@@ -2,6 +2,8 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { CONTENT_KEYS, getContent, isContentKey, listContent, removeContentImage, updateContent } from "../services/content";
 import { loadAttention } from "../services/attention";
+import { listEvents } from "../services/events";
+import { loadPortfolio, sitemapPieces } from "../services/portfolio";
 import { loadSettings } from "../services/settings";
 import { adminProcedure, optionalUser, publicProcedure, router, staffProcedure } from "../trpc";
 
@@ -48,4 +50,16 @@ export const contentRouter = router({
 export const siteRouter = router({
   /** What needs attention, for the dashboard and the publishing checklist. */
   attention: staffProcedure.query(({ ctx }) => loadAttention(ctx.db, { emailConfigured: ctx.email !== null })),
+
+  /** Everything a search engine may be told about. Empty until the site is published. Signed-in preview does not count. */
+  sitemap: publicProcedure.query(async ({ ctx }) => {
+    const settings = await loadSettings(ctx.db);
+    if (!settings.siteLive) return { live: false as const, pieces: [], events: [] };
+    const [portfolio, upcoming, past] = await Promise.all([loadPortfolio(ctx.db, settings), listEvents(ctx.db, { when: "upcoming" }), listEvents(ctx.db, { when: "past" })]);
+    return {
+      live: true as const,
+      pieces: sitemapPieces(portfolio),
+      events: [...upcoming, ...past].filter((e) => e.status !== "DRAFT").map((e) => ({ slug: e.slug, startsAt: e.startsAt })),
+    };
+  }),
 });

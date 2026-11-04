@@ -31,6 +31,6 @@ Date: 31 Oct 2026.
 - `opentype.js` v2 `toPathData` emits `NaN` coordinates for some glyph sequences (for example "Bot" at 20 px), which silently drops letters. We serialise glyph commands ourselves and fail loudly on non-finite numbers.
 - A word was split mid-word when a smaller font would fit it. Wrapping now shrinks the font first and only splits words at the smallest size.
 
-## Not built yet (Phase 5)
+## Not built yet (Phase 5, which now follows Phase 4)
 
 Adjustable templates, A4 batch sheets with crop marks and start position, PDF export, stale-label flag, label print records, and direct Bluetooth printing (spike 4, deferred to the start of Phase 5; PNG export through the NIIMBOT app is the approved fallback).

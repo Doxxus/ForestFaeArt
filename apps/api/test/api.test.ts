@@ -300,8 +300,12 @@ describe("error responses", () => {
 describe("settings", () => {
   it("shares only public settings with the public site", async () => {
     const pub = await api().settings.public();
-    expect(pub).toMatchObject({ siteLive: true, storeMode: "SHOWCASE_ONLY" });
-    expect(JSON.stringify(pub)).not.toMatch(/asa@|noreply@|qrBaseUrl|taxRegistered/);
+    expect(pub).toMatchObject({ siteLive: true, storeMode: "SHOWCASE_ONLY", publicEmail: "asa@forestfae.ca" });
+    // The address shown to visitors is public on purpose. The inbox, sender and tax settings never are.
+    for (const key of ["inquiryEmail", "replyToEmail", "systemFromEmail", "qrBaseUrl", "taxRegistered", "taxRegistrationNumber", "smallSupplierThresholdCents", "defaultLabelTemplateId"]) {
+      expect(pub).not.toHaveProperty(key);
+    }
+    expect(JSON.stringify(pub)).not.toMatch(/noreply@|qrBaseUrl|taxRegistered/);
     expect(await api({ token: adminToken }).settings.get()).toHaveProperty("inquiryEmail", "asa@forestfae.ca");
   });
   it("rejects invalid values", async () => {

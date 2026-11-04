@@ -20,7 +20,7 @@ Sign in and set password, dashboard (counts, needs-photos and Etsy reminders, AD
 
 - Security headers and a Content-Security-Policy (Phase 8 hardening, with the public site's needs known).
 - Drag-and-drop photo reordering (move earlier and later buttons work now, which also suits keyboards and screen readers).
-- Events, inquiries, customers, sales and labels (Phases 3, 5 and 6), the public site (Phase 4).
+- Sales, customers and labels (Phases 5 and 6), and the public site ([Phase 4, ADR 011](./011-public-site.md)).
 
 ## Consequences
 

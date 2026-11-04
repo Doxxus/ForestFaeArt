@@ -10,7 +10,8 @@
     "lint": "eslint src scripts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
-    "brand:directions": "tsx scripts/logo-directions.ts"
+    "brand:directions": "tsx scripts/logo-directions.ts",
+    "kit": "tsx scripts/kit/index.ts"
   },
   "dependencies": {
     "@ffa/label-engine": "workspace:*"
@@ -18,6 +19,7 @@
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
     "@types/node": "^26.6.6",
+    "svgo": "^4.1.0",
     "tsx": "^4.23.15"
   }
 }

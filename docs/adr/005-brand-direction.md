@@ -31,12 +31,15 @@ Copper and gold must not be used for normal-size text. Use `copperDeep` instead.
 - The label engine's placeholder logo is replaced by the geometric moth (`packages/label-engine/src/logo.ts`). All QR scan tests still pass with it.
 - Design tokens and contrast checks exist in `packages/ui`.
 
-## Still to do (Phase 4, from 24 Nov)
+## Phase 4 progress (started 3 Nov)
 
-- The rest of the SVG kit in this style: butterflies, dragonflies, spiders, cicadas, centipedes, mushrooms, ferns, leaves, branches, flowers, dividers and corner ornaments.
-- Favicon, Android app icon, OG image, loaders and the style-guide page.
+Done (see [ADR 011](./011-public-site.md)): the SVG kit in this style (butterflies, moths, beetles, dragonfly, cicada, spider, centipede, mushrooms, ferns, leaves, a branch, wildflowers, dividers and the corner ornament), the favicon, touch icon and link-preview picture, the style-guide page, and the Tailwind theme wiring from the tokens.
+
+Still to do:
+
+- Loaders (a small animated mark) when a page needs one.
 - A one-colour version of the compact lockup for the thermal label header, if wanted.
-- Tailwind theme wiring from the tokens.
+- Android app icon (with the POS app, Phase 6).
 - The owner may want to review the lettering and insects after handover.
 
 ## Caveat

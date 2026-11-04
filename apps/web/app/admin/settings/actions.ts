@@ -23,6 +23,7 @@ export async function updateSettingsAction(formData: FormData) {
       instagramUrl: text(formData, "instagramUrl"),
       etsyUrl: text(formData, "etsyUrl"),
       facebookUrl: text(formData, "facebookUrl"),
+      publicEmail: text(formData, "publicEmail"),
       inquiryEmail: text(formData, "inquiryEmail"),
       replyToEmail: text(formData, "replyToEmail"),
       systemFromEmail: text(formData, "systemFromEmail"),

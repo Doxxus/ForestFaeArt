@@ -52,7 +52,128 @@ body {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Public site (ADR 011) ---------- */
+
+.skip-link {
+  position: absolute;
+  left: 0.5rem;
+  top: -4rem;
+  z-index: 100;
+  border-radius: 0.5rem;
+  background: var(--color-forest);
+  padding: 0.75rem 1rem;
+  color: var(--color-cream);
+}
+.skip-link:focus {
+  top: 0.5rem;
+}
+
+/* Foil lettering from the banner: a copper and gold gradient with a cream outline. Large display text only (ADR 005). */
+.foil {
+  background: linear-gradient(180deg, var(--color-copper) 0%, #A0652F 50%, var(--color-copperdeep) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* The outline is four tight shadows of the letters themselves, so the gradient stays visible inside. */
+  filter: drop-shadow(1.5px 0 0 var(--color-cream)) drop-shadow(-1.5px 0 0 var(--color-cream)) drop-shadow(0 1.5px 0 var(--color-cream)) drop-shadow(0 -1.5px 0 var(--color-cream)) drop-shadow(0 2px 2px rgb(43 30 22 / 0.3));
+}
+
+.prose-fae p {
+  margin: 0 0 1em;
+  line-height: 1.75;
+  max-width: 65ch;
+}
+.prose-fae p:last-child {
+  margin-bottom: 0;
+}
+
+/* A visually hidden trap field for spam bots. Real visitors never see it or reach it with the keyboard. */
+.trap-field {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 42%, rgb(244 239 227 / 0.55), transparent 70%),
+    radial-gradient(circle at 12% 18%, rgb(111 138 85 / 0.22), transparent 38%),
+    radial-gradient(circle at 88% 82%, rgb(111 138 85 / 0.2), transparent 40%),
+    var(--color-sage);
+}
+.hero-layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.hero-art {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform;
+}
+
+.pollen {
+  position: absolute;
+  border-radius: 9999px;
+  background: var(--color-champagne);
+  opacity: 0.7;
+  box-shadow: 0 0 6px 1px rgb(232 217 176 / 0.8);
+}
+
+.lift {
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+.lift:hover,
+.lift:focus-within {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px -12px rgb(43 30 22 / 0.35);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes drift-a {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--r, 0deg)); }
+    50% { transform: translate3d(14px, -18px, 0) rotate(calc(var(--r, 0deg) + 4deg)); }
+  }
+  @keyframes drift-b {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--r, 0deg)); }
+    50% { transform: translate3d(-16px, -12px, 0) rotate(calc(var(--r, 0deg) - 5deg)); }
+  }
+  @keyframes pollen {
+    0% { transform: translate3d(0, 0, 0); opacity: 0; }
+    15% { opacity: 0.75; }
+    85% { opacity: 0.6; }
+    100% { transform: translate3d(var(--dx, 20px), -140px, 0); opacity: 0; }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+  }
+  .drift-a { animation: drift-a 18s ease-in-out infinite; }
+  .drift-b { animation: drift-b 22s ease-in-out infinite; }
+  .pollen { animation: pollen var(--t, 14s) ease-in infinite; animation-delay: var(--d, 0s); }
+  .rise { animation: rise 0.9s ease-out both; }
+  .rise-2 { animation: rise 0.9s 0.15s ease-out both; }
+  .rise-3 { animation: rise 0.9s 0.3s ease-out both; }
+
+  /* Light parallax where the browser supports scroll-driven animation. Elsewhere the layers simply stay put. */
+  @supports (animation-timeline: scroll()) {
+    @keyframes parallax-slow { to { transform: translateY(40px); } }
+    @keyframes parallax-fast { to { transform: translateY(90px); } }
+    .parallax-slow { animation: parallax-slow linear both; animation-timeline: scroll(root); animation-range: 0 60vh; }
+    .parallax-fast { animation: parallax-fast linear both; animation-timeline: scroll(root); animation-range: 0 60vh; }
   }
 }

@@ -5,7 +5,7 @@ Staging lives in the dedicated, project-only Cloudflare account (HAND-0, HAND-2)
 | Resource | Name | Notes |
 |---|---|---|
 | API Worker | `ffa-api-staging` | https://ffa-api-staging.forestfaefolk.workers.dev. `GET /health`, tRPC at `/trpc` |
-| Web Worker | `ffa-web-staging` | https://ffa-web-staging.forestfaefolk.workers.dev. Placeholder page, `noindex` and `robots.txt` disallow all |
+| Web Worker | `ffa-web-staging` | https://ffa-web-staging.forestfaefolk.workers.dev. The admin app and the public website (hidden behind "Coming soon" until published). `noindex`, and `robots.txt` disallows everything on staging |
 | D1 database | `ffa-staging` | id `8669cdae-fe0c-4f3b-aca1-b0ffb443068b`, bound as `DB` in the API Worker |
 | Worker secret | `SESSION_SECRET` | On `ffa-api-staging`. Random 48 bytes, set with `wrangler secret put`. Never stored in the repo |
 | Worker secret | `INTERNAL_SECRET` | On **both** `ffa-api-staging` and `ffa-web-staging` (same value). Lets the web app forward visitor addresses to the API for rate limiting ([ADR 009](./adr/009-admin-web-app.md)). Rotate with `wrangler secret put INTERNAL_SECRET --env staging` and `... --name ffa-web-staging` |
@@ -75,20 +75,30 @@ To check email works: set `siteLive` on staging, submit the contact form (or `in
 
 Cloudflare Turnstile is a free, mostly invisible "are you a person" check for the public contact form (WEB-7). It is **deliberately off for now**. The form is already protected by a hidden trap field, a limit of 5 messages per hour per visitor, and the form only working while the site is live. Turn Turnstile on if spam appears, or before launch if the owner prefers.
 
-What is already built (API): `inquiries.submit` accepts an optional `turnstileToken`. When the Worker secret `TURNSTILE_SECRET` is set, the API verifies every token with Cloudflare and rejects the message if it fails. When it is not set, the check passes. No code change is needed on the API.
+What is built: `inquiries.submit` (API) accepts an optional `turnstileToken`. When the Worker secret `TURNSTILE_SECRET` is set, the API verifies every token with Cloudflare and rejects the message if it fails. When it is not set, the check passes. The public contact and "Ask about this piece" forms (`apps/web/components/site/inquiry-form.tsx`) show the widget whenever `VITE_TURNSTILE_SITE_KEY` is set, and the browser adds the token to the form by itself.
 
 To switch it on:
 
 1. Cloudflare dashboard > **Turnstile** > Add widget. Hostnames: `forestfae.ca` (and `ffa-web-staging.forestfaefolk.workers.dev` for testing). Mode: Managed. Copy the **site key** (public) and **secret key**.
-2. `wrangler secret put TURNSTILE_SECRET --env staging` in `apps/api` (and the same without `--env` at production cut-over). Paste the secret key.
-3. In the public contact form (Phase 4, not built yet), render the Turnstile widget with the site key and send its token as `turnstileToken`. **Phase 4 must build the form so the widget appears only when a site key is configured** (a public environment setting). Then steps 2 and 3 are safe in either order. If the secret is set before the form sends tokens, every message is rejected.
-4. Test: submit the form on staging, then try a request with no token and confirm it is rejected.
+2. Put the site key in `apps/web/.env.production` as `VITE_TURNSTILE_SITE_KEY=<site key>` (the file has a commented-out line for it) and redeploy the web app (`pnpm deploy:staging` in `apps/web`). The site key is public, so it is fine in that file. Check the widget appears on the contact form.
+3. Only now, `wrangler secret put TURNSTILE_SECRET --env staging` in `apps/api` (and the same without `--env` at production cut-over). Paste the secret key. **Do this after step 2**: with the secret set but no widget on the form, every message is rejected.
+4. Test: submit the form on staging, then send a request with no token (for example the API's `inquiries.submit` directly) and confirm it is rejected.
 
 Test-only keys that always pass or fail are in [Cloudflare's docs](https://developers.cloudflare.com/turnstile/troubleshooting/testing/).
 
+## The public website
+
+The public site is part of the web app ([ADR 011](./adr/011-public-site.md)). Things to know when running it:
+
+- **It starts hidden.** Until the owner presses "Publish my website" (Settings), every public address shows a "Coming soon" page to visitors, and signed-in staff see the real site with a "Preview" banner. To look at staging as a visitor would, sign out first.
+- **Search engines stay out of staging**, even when its site is published for testing: indexing needs `VITE_INDEXABLE=true`, which only production sets. `robots.txt` and `sitemap.xml` follow the same rule.
+- **Per-environment settings** (`apps/web/.env.production`): `VITE_API_URL`, `VITE_SITE_URL`, `VITE_INDEXABLE`, `VITE_TURNSTILE_SITE_KEY` and `VITE_ANALYTICS_TOKEN`. The table is in ADR 011.
+- **The art kit** is redrawn with `pnpm --filter @ffa/ui kit` (files in `apps/web/public/kit`, plus the favicon, touch icon and link-preview picture). The test in `packages/ui` fails if a committed file is out of date. Look at it all at `/admin/style-guide`.
+- **To test the public site locally:** start the API (`pnpm dev` in `apps/api`), start the web app (`pnpm dev` in `apps/web`), publish the site in Settings, and open http://localhost:3100.
+
 ## Not set up yet
 
-- A staging custom domain such as `staging.forestfae.ca` (waits for the domain move and zone build-out).
-- Access control in front of staging (Cloudflare Access) once the custom domain exists. Until then staging holds only a placeholder page and an empty database.
+- A staging custom domain such as `staging.forestfae.ca` (waits for the zone build-out).
+- Access control in front of staging (Cloudflare Access) once the custom domain exists.
 - A production environment. It is created at cut-over in Phase 8.
 - Error reporting, uptime checks and D1 backups (Phase 8).

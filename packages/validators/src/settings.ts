@@ -27,7 +27,7 @@ export const SETTINGS = {
   showStockCounts: def({ schema: z.boolean(), default: false, public: true }),
   showEtsyLinks: def({ schema: z.boolean(), default: true, public: true }),
   businessName: def({ schema: text(120), default: "Forest Fae Folk Art", public: true }),
-  tagline: def({ schema: text(200), default: "", public: true }),
+  tagline: def({ schema: text(200), default: "Handmade insect art", public: true }),
   sourcingStatement: def({
     schema: text(2000),
     default: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. (Draft: please write your own sourcing statement.)",
@@ -36,6 +36,8 @@ export const SETTINGS = {
   instagramUrl: def({ schema: urlish, default: "https://www.instagram.com/forestfaefolkart", public: true }),
   etsyUrl: def({ schema: urlish, default: "https://forestfaefolkart.etsy.com", public: true }),
   facebookUrl: def({ schema: urlish, default: "", public: true }),
+  /** Shown on the contact page and in the footer. Separate from the private inbox that inquiries arrive at. */
+  publicEmail: def({ schema: emailish, default: "asa@forestfae.ca", public: true }),
   inquiryEmail: def({ schema: emailish, default: "asa@forestfae.ca", public: false }),
   systemFromEmail: def({ schema: emailish, default: "noreply@forestfae.ca", public: false }),
   replyToEmail: def({ schema: emailish, default: "asa@forestfae.ca", public: false }),

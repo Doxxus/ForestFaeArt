@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Alert, Badge, Card, Flash, PageHeader } from "@/components/ui";
+import { Alert, Badge, Card, Flash, PageHeader, buttonClass } from "@/components/ui";
 import { dateTime } from "@/lib/format";
 import { requireUser, serverApi } from "@/lib/session";
 import { CONTENT_KEYS, PAGE_HELP } from "./keys";
@@ -15,7 +15,11 @@ export default async function WebsitePage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <PageHeader title="Website" intro="The words and pictures on your website. Your Instagram, Etsy and email addresses are in Settings." />
+      <PageHeader title="Website" intro="The words and pictures on your website. Your Instagram, Etsy and email addresses are in Settings.">
+        <Link href="/admin/style-guide" className={buttonClass("ghost")}>
+          See the design kit
+        </Link>
+      </PageHeader>
       <Flash saved={saved} error={error} />
       {drafts ? (
         <Alert tone="info">

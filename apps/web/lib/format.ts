@@ -60,6 +60,13 @@ export function eventRange(start: Date | string | number, end: Date | string | n
   return sameDay ? `${date.format(s)}, ${time.format(s)} to ${time.format(e)}` : `${date.format(s)}, ${time.format(s)} to ${date.format(e)}, ${time.format(e)}`;
 }
 
+/** What a card or page says where a price would be. A sold piece shows no price, and a hidden price invites an inquiry (WEB-4). */
+export function priceLine(p: { status: "AVAILABLE" | "RESERVED" | "SOLD"; priceCents: number | null }): string {
+  if (p.status === "SOLD") return "Sold";
+  if (p.priceCents === null) return "Inquire for price";
+  return money(p.priceCents);
+}
+
 /** Where the API serves a photo from, optionally resized. */
 export function photoUrl(apiUrl: string, path: string, width?: number) {
   return `${apiUrl}${path}${width ? `?w=${width}` : ""}`;

@@ -104,6 +104,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             <Field label="Facebook address" htmlFor="facebookUrl">
               <Input id="facebookUrl" name="facebookUrl" type="url" defaultValue={s.facebookUrl} />
             </Field>
+            <Field label="Email address shown to visitors" htmlFor="publicEmail" hint="Leave empty to show only the contact form.">
+              <Input id="publicEmail" name="publicEmail" type="email" defaultValue={s.publicEmail} />
+            </Field>
           </div>
         </Card>
 
