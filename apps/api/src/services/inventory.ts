@@ -313,6 +313,38 @@ export async function adjustStock(
 }
 
 // ---------------------------------------------------------------------------
+// Bulk archive (undoing an import)
+// ---------------------------------------------------------------------------
+
+/**
+ * Archives many products in chunks, one ledger row each. Used to undo an import. Archiving is a valid move from every
+ * status. Each chunk is atomic, and a product that changed after it was read makes its chunk fail with CONFLICT.
+ */
+export async function archiveProducts(
+  db: Db,
+  actor: Actor,
+  items: { id: string; status: ProductStatus; quantity: number }[],
+  opts: { note: string; importBatchId?: string },
+): Promise<{ ok: true; archived: number } | InventoryError> {
+  const CHUNK = 25;
+  let archived = 0;
+  for (let i = 0; i < items.length; i += CHUNK) {
+    const chunk = items.slice(i, i + CHUNK);
+    const statements: Batchable[] = chunk.flatMap((p) => [
+      db
+        .update(products)
+        .set({ status: "ARCHIVED", archivedAt: new Date(), reservedCustomerId: null, reservedNote: null, reservedUntil: null })
+        .where(and(eq(products.id, p.id), eq(products.status, p.status), eq(products.quantity, p.quantity))),
+      ledgerAfterUpdate(db, { productId: p.id, fromStatus: p.status, delta: 0, actor, notes: opts.note, importBatchId: opts.importBatchId }),
+    ]);
+    const error = await runGuarded(db, statements);
+    if (error) return error;
+    archived += chunk.length;
+  }
+  return { ok: true, archived };
+}
+
+// ---------------------------------------------------------------------------
 // Sale lines (used by the sale service in Phase 6)
 // ---------------------------------------------------------------------------
 

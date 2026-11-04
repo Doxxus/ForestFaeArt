@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import type { InventoryError } from "./services/inventory";
+import type { ServiceError } from "./services/catalogue";
 import type { UserServiceError } from "./services/users";
 
 const INVENTORY_CODES = {
@@ -28,4 +29,10 @@ const USER_CODES = {
 
 export function userError(error: UserServiceError): TRPCError {
   return new TRPCError({ code: USER_CODES[error.code], message: error.message });
+}
+
+const SERVICE_CODES = { NOT_FOUND: "NOT_FOUND", CONFLICT: "CONFLICT", INVALID: "BAD_REQUEST" } as const;
+
+export function serviceError(error: ServiceError): TRPCError {
+  return new TRPCError({ code: SERVICE_CODES[error.code], message: error.message });
 }

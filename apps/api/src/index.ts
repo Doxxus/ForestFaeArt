@@ -1,6 +1,8 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import type { Env } from "./env";
 import { appRouter } from "./router";
+import { handleUpload } from "./media/upload";
+import { serveMedia } from "./media/serve";
 import { createContext } from "./trpc";
 
 const json = (body: unknown, status = 200) =>
@@ -21,6 +23,9 @@ export default {
       const ok = database && media;
       return json({ ok, environment: env.ENVIRONMENT, database, media }, ok ? 200 : 503);
     }
+
+    if (pathname === "/media/upload") return handleUpload(env, req, new URL(req.url));
+    if (pathname.startsWith("/media/")) return serveMedia(env, req, new URL(req.url));
 
     if (pathname.startsWith("/trpc")) {
       return fetchRequestHandler({

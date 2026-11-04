@@ -7,4 +7,6 @@ export interface Env {
   ENVIRONMENT: "local" | "staging" | "production";
   /** Origin of the web app, used to build set-password and reset links. No trailing slash. */
   WEB_ORIGIN: string;
+  /** Cloudflare Images binding for resized photos. Optional: without it the original is served. */
+  IMAGES?: ImagesBinding;
 }

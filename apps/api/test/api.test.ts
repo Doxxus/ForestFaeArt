@@ -245,7 +245,7 @@ describe("public catalog", () => {
     const { items } = await api().catalog.list({});
     expect(items).toHaveLength(1);
     expect(Object.keys(items[0]!).sort()).toEqual(
-      ["currency", "description", "etsyUrl", "featured", "priceCents", "remaining", "sku", "slug", "status", "title"],
+      ["currency", "description", "etsyUrl", "featured", "image", "priceCents", "remaining", "sku", "slug", "status", "title"],
     );
     expect(JSON.stringify(items)).not.toMatch(/costCents|6000|quantity/);
   });

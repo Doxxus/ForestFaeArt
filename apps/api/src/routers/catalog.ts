@@ -1,9 +1,13 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { and, desc, eq, inArray, lt, or, products, slugRedirects, sql } from "@ffa/db";
+import { and, desc, eq, inArray, lt, or, productImages, products, slugRedirects, sql } from "@ffa/db";
 import { loadSettings } from "../services/settings";
+import { getProductCategoryIds, getProductMetadata, listCategories } from "../services/catalogue";
+import { listProductImages, mediaPath } from "../services/images";
 import { toPublicProduct } from "../services/projections";
 import { optionalUser, publicProcedure, router, type Context } from "../trpc";
+
+const publicImage = (p: typeof productImages.$inferSelect) => ({ path: mediaPath(p.r2Key), altText: p.altText, width: p.width, height: p.height });
 
 // Draft and archived items never leave the database through this router.
 const LISTABLE = ["AVAILABLE", "AT_EVENT", "PENDING_PAYMENT", "RESERVED", "SOLD"] as const;
@@ -31,7 +35,15 @@ export const catalogRouter = router({
         .limit(input.limit + 1)
         .all();
       const page = rows.slice(0, input.limit);
-      const items = page.flatMap((r) => toPublicProduct(r.product, settings, Boolean(r.hasPhoto)) ?? []);
+      const visibleRows = page.flatMap((r) => {
+        const product = toPublicProduct(r.product, settings, Boolean(r.hasPhoto));
+        return product ? [{ id: r.product.id, product }] : [];
+      });
+      const primaries = visibleRows.length
+        ? await ctx.db.select().from(productImages).where(and(inArray(productImages.productId, visibleRows.map((r) => r.id)), eq(productImages.isPrimary, true))).all()
+        : [];
+      const byProduct = new Map(primaries.map((p) => [p.productId, publicImage(p)]));
+      const items = visibleRows.map((r) => ({ ...r.product, image: byProduct.get(r.id) ?? null }));
       return { items, nextCursor: rows.length > input.limit ? page[page.length - 1]!.product.id : null };
     }),
 
@@ -48,7 +60,20 @@ export const catalogRouter = router({
       .where(or(eq(products.sku, key.toUpperCase()), eq(products.slug, key), redirect ? eq(products.id, redirect.productId) : undefined))
       .get();
     const product = row ? toPublicProduct(row.product, settings, Boolean(row.hasPhoto)) : null;
-    if (!product) throw notFound;
-    return product;
+    if (!row || !product) throw notFound;
+    const [metadata, cats, images] = await Promise.all([
+      getProductMetadata(ctx.db, row.product.id, { publicOnly: true }),
+      listCategories(ctx.db).then(async (all) => {
+        const ids = new Set(await getProductCategoryIds(ctx.db, row.product.id));
+        return all.filter((c) => ids.has(c.id) && !c.hidden).map((c) => ({ name: c.name, slug: c.slug }));
+      }),
+      listProductImages(ctx.db, row.product.id),
+    ]);
+    return {
+      ...product,
+      categories: cats,
+      metadata: metadata.map(({ label, value }) => ({ label, value })),
+      images: images.map(({ path, altText, width, height }) => ({ path, altText, width, height })),
+    };
   }),
 });
