@@ -27,7 +27,8 @@ const RESEND_URL = "https://api.resend.com/emails";
 export class ResendProvider implements EmailProvider {
   constructor(
     private readonly apiKey: string,
-    private readonly fetcher: typeof fetch = fetch,
+    // Wrapped because Workers' fetch throws "Illegal invocation" when called as a method of another object.
+    private readonly fetcher: typeof fetch = (input, init) => fetch(input, init),
   ) {}
 
   async send(m: EmailMessage): Promise<EmailResult> {
@@ -48,6 +49,7 @@ export class ResendProvider implements EmailProvider {
       if (res.ok) return { ok: true, id: body.id ?? null };
       return { ok: false, error: `Email provider said ${res.status}: ${body.message ?? body.name ?? "no details"}`.slice(0, 300) };
     } catch (error) {
+      console.error(JSON.stringify({ event: "email-provider-unreachable", name: error instanceof Error ? error.name : "unknown", message: error instanceof Error ? error.message.replaceAll(this.apiKey, "[key]") : String(error) }));
       return { ok: false, error: error instanceof Error && error.name === "AbortError" ? "The email provider took too long to answer." : "Couldn't reach the email provider." };
     } finally {
       clearTimeout(timer);

@@ -261,6 +261,22 @@ describe("the Resend adapter", () => {
     expect(body).toMatchObject({ from: "A <a@x.ca>", to: ["b@y.ca"], reply_to: "c@z.ca", subject: "Hi Bcc: evil" });
   });
 
+  it("calls the default fetch as a plain function, which Workers require", async () => {
+    const original = globalThis.fetch;
+    let receiver: unknown = "unset";
+    globalThis.fetch = function (this: unknown) {
+      // eslint-disable-next-line @typescript-eslint/no-this-alias -- the receiver is exactly what this test checks
+      receiver = this;
+      return Promise.resolve(new Response(JSON.stringify({ id: "re_1" }), { status: 200 }));
+    } as typeof fetch;
+    try {
+      expect(await new ResendProvider("re_secret").send(message)).toEqual({ ok: true, id: "re_1" });
+      expect(receiver === undefined || receiver === globalThis).toBe(true);
+    } finally {
+      globalThis.fetch = original;
+    }
+  });
+
   it("turns errors into plain messages without leaking the key", async () => {
     const denied = (async () => new Response(JSON.stringify({ message: "The domain is not verified", name: "validation_error" }), { status: 403 })) as unknown as typeof fetch;
     const r = await new ResendProvider("re_secret", denied).send(message);

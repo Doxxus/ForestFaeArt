@@ -1,6 +1,6 @@
 # ADR 010: Events, website content, inquiries and email
 
-Status: **accepted** (3 Nov 2026, Phase 3). API and admin screens built and tested. Email delivery is waiting on a Resend key and the domain's DNS records.
+Status: **accepted** (3 Nov 2026, Phase 3). API and admin screens built and tested. Email delivery is verified on staging through Resend (notification, reply and inbound via Email Routing).
 
 ## Decision
 
@@ -21,8 +21,8 @@ Status: **accepted** (3 Nov 2026, Phase 3). API and admin screens built and test
 
 ## Not done yet
 
-- A Resend key, then SPF, DKIM and DMARC records on the domain (separate email ADR once DNS is touched), and Email Routing for asa@ forwarding to the owner's mailbox.
-- Turnstile site and secret keys (the form works without them).
+- A separate email ADR if the provider or domain setup changes. At handover, point Email Routing for asa@ at the owner's mailbox and verify it.
+- Turnstile site and secret keys (the form works without them). Switch-on steps are in [staging.md](../staging.md#turnstile-not-switched-on-yet). **Phase 4's contact form must support an optional Turnstile site key.**
 - The public pages that show events and content (Phase 4).
 
 ## Consequences
