@@ -48,7 +48,7 @@ The local database lives in `apps/api/.wrangler` (git-ignored) and never touches
 
 ## Database state
 
-Staging has migrations `0000` to `0005` applied (3 Nov 2026): the full data model, the append-only triggers, the reference data (8 categories, 9 metadata fields, the `sku` and `sale` counters), placeholder website content, and the inquiry delivery-error columns. The first ADMIN exists. Further users are invited from the admin app (`users.invite` returns a set-password link, `WEB_ORIGIN` builds it).
+Staging has migrations `0000` to `0006` applied (`0006` on 4 Nov 2026): the full data model, the append-only triggers, the reference data (8 categories, 9 metadata fields, the `sku` and `sale` counters), placeholder website content, the inquiry delivery-error columns, and the sale discount-reason and undo columns. The first ADMIN exists. Further users are invited from the admin app (`users.invite` returns a set-password link, `WEB_ORIGIN` builds it).
 
 API tests (`pnpm test` in `apps/api`) run against a throwaway local D1 with every migration applied. They never touch staging.
 
@@ -105,6 +105,19 @@ Label printing is in the admin under **Labels** ([ADR 013](./adr/013-label-print
 - **Testing the B1 over Bluetooth** (spike 4, needs the Android phone and the B1): sign in on the phone in **Chrome**, open `/admin/labels/printer-test`, switch the B1 on, close the NIIMBOT app (it holds the connection), press *Connect*, pick the printer, then print the test card. If it prints sideways, change *Direction*. Then print a real label from **Labels** with *Print on the B1 (Bluetooth)*. Try a 40 x 30 and a 50 x 30 label. Send the connection log if anything fails.
 - **If Bluetooth does not work**, the approved fallback is *Pictures for the NIIMBOT app*: it makes one PNG per label (a ZIP for several) that you open in the NIIMBOT app, which is what passed the print test on 31 Oct.
 - **A4 sheets:** choose *A4 sheet*, set the margin, gap, cutting guides and start position, and print the PDF at **Actual size / 100%**, never "Fit to page".
+
+## The POS app
+
+The app is in `apps/pos` ([ADR 014](./adr/014-sales-and-pos.md)). It uses no custom native code, so **Expo Go** runs it while developing.
+
+1. **One-time:** install **Expo Go** from the Play Store on the Android phone. Make a free account at https://expo.dev (needed later for builds, and to sign in to Expo Go).
+2. In `apps/pos`, run `pnpm start`. A QR code appears in the terminal. Open Expo Go, scan it, and the app opens (the phone and the computer must be on the same Wi-Fi. If they can't see each other, run `pnpm exec expo start --tunnel`).
+3. The app talks to **staging** by default. To use your local API instead, set `EXPO_PUBLIC_API_URL` (for example `http://192.168.1.20:8787`, the computer's address on the Wi-Fi) before `pnpm start`.
+4. Sign in with a staff or admin account made with `create-user`.
+5. To try offline selling, turn on airplane mode, make a sale (it says "Saved on this phone"), turn airplane mode off, and watch the "waiting to send" message clear within about 20 seconds. Then open **Today** and check it is there.
+6. **Print a label** in the app opens the web print screen in Chrome. Sign in to the admin in Chrome on that phone once, and printing works as in [Labels and the B1 printer](#labels-and-the-b1-printer).
+
+**Making an installable APK** (for the owner's and staff phones at handover, HAND-4): `pnpm dlx eas-cli login`, then in `apps/pos` run `pnpm dlx eas-cli build --platform android --profile preview` (staging) or `--profile production`. EAS gives a private link to the APK. The production profile points at `https://api.forestfae.ca`, which is a placeholder until the production domain exists (Phase 8). `pnpm bundle:check` checks the app still bundles.
 
 ## Not set up yet
 

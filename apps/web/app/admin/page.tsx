@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PRODUCT_STATUSES } from "@ffa/validators";
+import { PRODUCT_STATUSES, SALE_CHANNEL_LABELS } from "@ffa/validators";
 import { Alert, Badge, Card, LinkButton, PageHeader } from "@/components/ui";
 import { eventRange, STATUS_LABELS, money } from "@/lib/format";
 import { requireUser, serverApi } from "@/lib/session";
@@ -19,10 +19,11 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const { denied } = await searchParams;
   const isAdmin = user.role === "ADMIN";
   const api = await serverApi();
-  const [summary, attention, upcoming] = await Promise.all([
+  const [summary, attention, upcoming, sales] = await Promise.all([
     api.inventory.summary.query(),
     api.site.attention.query(),
     api.events.list.query({ when: "upcoming", includeArchived: false }),
+    isAdmin ? api.sales.summary.query({ breakdown: "month" }) : Promise.resolve(null),
   ]);
   const owner = isAdmin ? (summary as typeof summary & { totalValueCents: number; totalCostCents: number }) : null;
   const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
@@ -97,6 +98,92 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           )}
         </Card>
       </div>
+
+      {sales ? (
+        <>
+          <Card title="Sales" className="mt-5">
+            <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {(
+                [
+                  ["today", "Today"],
+                  ["week", "This week"],
+                  ["month", "This month"],
+                  ["year", "This year"],
+                ] as const
+              ).map(([key, label]) => (
+                <div key={key}>
+                  <dt className="text-moss">{label}</dt>
+                  <dd className="text-2xl font-semibold text-forest">{money(sales.periods[key].totalCents)}</dd>
+                  <dd className="text-sm text-moss">{plural(sales.periods[key].count, "sale", "sales")}</dd>
+                </div>
+              ))}
+            </dl>
+            {sales.byChannel.length ? (
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <h3 className="mb-1 font-medium text-forest">This month, by where it sold</h3>
+                  <ul className="divide-y divide-stone">
+                    {sales.byChannel.map((c) => (
+                      <li key={c.channel} className="flex justify-between py-1">
+                        <span>{SALE_CHANNEL_LABELS[c.channel]}</span>
+                        <span>{money(c.totalCents)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="mb-1 font-medium text-forest">This month, by event</h3>
+                  <ul className="divide-y divide-stone">
+                    {sales.byEvent.map((e) => (
+                      <li key={e.eventId ?? "none"} className="flex justify-between py-1">
+                        <span>{e.title}</span>
+                        <span>{money(e.totalCents)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              <p className="mt-3 text-moss">No sales yet this month.</p>
+            )}
+            <p className="mt-3">
+              <Link href="/admin/sales" className="text-forest underline">
+                See all sales
+              </Link>
+            </p>
+          </Card>
+
+          <Card title="GST/HST small-supplier limit" className="mt-5">
+            <p>
+              Your sales over the last 12 months: <strong>{money(sales.threshold.revenueCents)}</strong> of {money(sales.threshold.thresholdCents)} ({sales.threshold.percent}%).
+            </p>
+            <div
+              role="progressbar"
+              aria-label="Sales against the GST/HST limit"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.min(100, sales.threshold.percent)}
+              className="my-3 h-3 overflow-hidden rounded-full bg-stone"
+            >
+              <div className={sales.threshold.level === "over" ? "h-full bg-danger" : sales.threshold.level === "warn" ? "h-full bg-copperdeep" : "h-full bg-moss"} style={{ width: `${Math.min(100, sales.threshold.percent)}%` }} />
+            </div>
+            {sales.threshold.level === "over" ? (
+              <Alert tone="error">
+                {sales.threshold.taxRegistered
+                  ? "You are over the limit. Your accountant can confirm what applies to you."
+                  : "You have reached the limit. You may need to register for GST/HST. Please talk to your accountant soon."}
+              </Alert>
+            ) : sales.threshold.level === "warn" ? (
+              <Alert tone="info">You are getting close to the limit. It is worth a chat with your accountant.</Alert>
+            ) : (
+              <p className="text-moss">You are well under the limit.</p>
+            )}
+            <p className="text-sm text-moss">
+              This is an early warning, not tax advice. The tax office counts four calendar quarters in a row, and this uses the last 12 months, so please confirm with your accountant.
+            </p>
+          </Card>
+        </>
+      ) : null}
 
       {owner ? (
         <Card title="Stock value" className="mt-5">

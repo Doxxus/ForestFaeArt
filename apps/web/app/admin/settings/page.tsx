@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { STORE_MODES } from "@ffa/validators";
+import { PAYMENT_METHODS, PAYMENT_METHOD_LABELS, STORE_MODES } from "@ffa/validators";
 import { Alert, Badge, Button, Card, Checkbox, Field, Flash, Input, PageHeader, Textarea } from "@/components/ui";
 import { requireUser, serverApi } from "@/lib/session";
 import { setSiteLiveAction, updateSettingsAction } from "./actions";
@@ -132,6 +132,15 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <Field label="GST/HST number" htmlFor="taxRegistrationNumber">
             <Input id="taxRegistrationNumber" name="taxRegistrationNumber" defaultValue={s.taxRegistrationNumber} maxLength={40} />
           </Field>
+        </Card>
+
+        <Card title="Payment methods in the POS app">
+          <fieldset>
+            <legend className="mb-2 text-moss">The app only records how a customer paid. Card payments are taken on your own card reader.</legend>
+            {PAYMENT_METHODS.map((m) => (
+              <Checkbox key={m} name="paymentMethods" value={m} label={PAYMENT_METHOD_LABELS[m]} defaultChecked={s.paymentMethods.includes(m)} />
+            ))}
+          </fieldset>
         </Card>
 
         <Button type="submit">Save settings</Button>

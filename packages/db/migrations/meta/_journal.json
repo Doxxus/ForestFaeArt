@@ -43,6 +43,13 @@
       "when": 1793761080151,
       "tag": "0005_inquiry_delivery_errors",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1793835288602,
+      "tag": "0006_sale_void_and_discount_reason",
+      "breakpoints": true
     }
   ]
 }

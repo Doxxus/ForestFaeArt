@@ -413,6 +413,10 @@ export function saleLineStatements(
       .set({
         quantity: sql`${products.quantity} - ${quantity}`,
         status: sql`CASE WHEN ${products.quantity} - ${quantity} = 0 THEN 'SOLD' ELSE ${products.status} END`,
+        // A reservation ends when the last unit is sold.
+        reservedCustomerId: sql`CASE WHEN ${products.quantity} - ${quantity} = 0 THEN NULL ELSE ${products.reservedCustomerId} END`,
+        reservedNote: sql`CASE WHEN ${products.quantity} - ${quantity} = 0 THEN NULL ELSE ${products.reservedNote} END`,
+        reservedUntil: sql`CASE WHEN ${products.quantity} - ${quantity} = 0 THEN NULL ELSE ${products.reservedUntil} END`,
       })
       .where(
         and(
@@ -427,6 +431,44 @@ export function saleLineStatements(
       delta: -quantity,
       actor,
       notes: "Sale",
+      eventId: line.eventId,
+      saleId: line.saleId,
+    }),
+  ];
+}
+
+/**
+ * The two statements that put `quantity` units back after a sale is voided. A product that sold out comes back as
+ * `restoreStatus` (AVAILABLE, or AT_EVENT when it is still out at the event). Anything else keeps its status, so a piece
+ * archived after the sale stays archived with its stock restored.
+ */
+export function voidLineStatements(
+  db: Db,
+  line: { productId: string; fromStatus: ProductStatus; quantity: number; saleId: string; eventId?: string | null; restoreStatus: "AVAILABLE" | "AT_EVENT" },
+  actor: Actor,
+): Batchable[] {
+  const { productId, quantity } = line;
+  return [
+    db
+      .update(products)
+      .set({
+        quantity: sql`${products.quantity} + ${quantity}`,
+        status: sql`CASE WHEN ${products.status} = 'SOLD' THEN ${line.restoreStatus} ELSE ${products.status} END`,
+      })
+      .where(
+        and(
+          eq(products.id, productId),
+          eq(products.status, line.fromStatus),
+          // Checked before the sale row is changed, so a second void of the same sale matches nothing and the batch fails.
+          sql`EXISTS (SELECT 1 FROM sale WHERE sale.id = ${line.saleId} AND sale.status = 'COMPLETED')`,
+        ),
+      ),
+    ledgerAfterUpdate(db, {
+      productId,
+      fromStatus: line.fromStatus,
+      delta: quantity,
+      actor,
+      notes: "Sale voided",
       eventId: line.eventId,
       saleId: line.saleId,
     }),

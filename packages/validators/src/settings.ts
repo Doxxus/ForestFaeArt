@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { STORE_MODES } from "./enums";
+import { PAYMENT_METHODS, STORE_MODES } from "./enums";
 
 const emailish = z.string().trim().max(254).refine((v) => v === "" || z.string().email().safeParse(v).success, {
   message: "Enter a valid email address",
@@ -44,6 +44,8 @@ export const SETTINGS = {
   qrBaseUrl: def({ schema: urlish, default: "https://forestfae.ca", public: false }),
   defaultLabelTemplateId: def({ schema: z.string().max(40).nullable(), default: null, public: false }),
   taxRegistered: def({ schema: z.boolean(), default: false, public: false }),
+  /** Which payment methods the POS offers (POS-4). The app only records the method. */
+  paymentMethods: def({ schema: z.array(z.enum(PAYMENT_METHODS)).min(1), default: [...PAYMENT_METHODS], public: false }),
   taxRegistrationNumber: def({ schema: text(40), default: "", public: false }),
   smallSupplierThresholdCents: def({ schema: z.number().int().positive(), default: 3_000_000, public: false }),
 } as const;

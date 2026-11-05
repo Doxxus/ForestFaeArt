@@ -8,6 +8,7 @@ import { importRouter } from "./routers/import";
 import { inventoryRouter } from "./routers/inventory";
 import { labelsRouter } from "./routers/labels";
 import { productsRouter } from "./routers/products";
+import { customersRouter, posRouter, salesRouter } from "./routers/sales";
 import { settingsRouter } from "./routers/settings";
 import { categoriesRouter, metadataRouter } from "./routers/taxonomy";
 import { usersRouter } from "./routers/users";
@@ -32,6 +33,9 @@ export const appRouter = router({
   site: siteRouter,
   events: eventsRouter,
   labels: labelsRouter,
+  sales: salesRouter,
+  customers: customersRouter,
+  pos: posRouter,
 });
 
 export type AppRouter = typeof appRouter;

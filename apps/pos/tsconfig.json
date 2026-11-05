@@ -1,6 +1,11 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true
-  }
+    "strict": true,
+    "skipLibCheck": true,
+    "noUncheckedIndexedAccess": true,
+    // The API's types are shared with this app, and they refer to Workers and Node globals.
+    "types": ["node", "@cloudflare/workers-types"]
+  },
+  "include": ["App.tsx", "index.ts", "src"]
 }

@@ -405,6 +405,8 @@ export const sales = sqliteTable(
     status: text("status", { enum: SALE_STATUSES }).notNull().default("COMPLETED"),
     subtotalCents: integer("subtotal_cents").notNull(),
     discountCents: integer("discount_cents").notNull().default(0),
+    /** Required whenever the discount is more than 0 (POS-5). */
+    discountReason: text("discount_reason").notNull().default(""),
     /** Always 0 while the owner is not GST/HST registered (SALE-5). */
     taxCents: integer("tax_cents").notNull().default(0),
     totalCents: integer("total_cents").notNull(),
@@ -414,6 +416,9 @@ export const sales = sqliteTable(
     /** When the sale really happened on the device (the POS may sync it later). */
     occurredAt: ms("occurred_at").notNull(),
     createdAt: createdAt(),
+    voidedAt: ms("voided_at"),
+    voidedByUserId: text("voided_by_user_id").references(() => users.id),
+    voidReason: text("void_reason"),
   },
   (t) => [
     uniqueIndex("sale_idempotency_unique").on(t.idempotencyKey),

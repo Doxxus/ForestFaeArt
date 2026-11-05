@@ -1,6 +1,6 @@
 "use server";
 
-import { STORE_MODES, type StoreMode } from "@ffa/validators";
+import { PAYMENT_METHODS, STORE_MODES, type PaymentMethod, type StoreMode } from "@ffa/validators";
 import { back, checked, settle, text } from "@/lib/actions";
 import { requireUser, serverApi } from "@/lib/session";
 
@@ -10,6 +10,8 @@ export async function updateSettingsAction(formData: FormData) {
   await requireUser({ admin: true });
   const mode = text(formData, "storeMode");
   if (!STORE_MODES.includes(mode as StoreMode)) back(here, { ok: false, message: "Please choose how the shop should work." });
+  const methods = formData.getAll("paymentMethods").map(String).filter((m): m is PaymentMethod => PAYMENT_METHODS.includes(m as PaymentMethod));
+  if (methods.length === 0) back(here, { ok: false, message: "Please leave at least one payment method turned on." });
   const result = await settle(async () =>
     (await serverApi()).settings.update.mutate({
       storeMode: mode,
@@ -30,6 +32,7 @@ export async function updateSettingsAction(formData: FormData) {
       qrBaseUrl: text(formData, "qrBaseUrl"),
       taxRegistered: checked(formData, "taxRegistered"),
       taxRegistrationNumber: text(formData, "taxRegistrationNumber"),
+      paymentMethods: methods,
     }),
   );
   back(here, result.ok ? { ok: true } : result, "Settings saved.");

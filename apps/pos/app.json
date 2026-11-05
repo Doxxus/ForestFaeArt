@@ -2,20 +2,40 @@
   "expo": {
     "name": "Forest Fae POS",
     "slug": "forestfae-pos",
-    "version": "0.0.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "platforms": ["android"],
     "android": {
       "package": "ca.forestfae.pos",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#F4EFE3",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
+      "permissions": ["CAMERA"],
       "predictiveBackGestureEnabled": false
-    }
+    },
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Forest Fae POS uses the camera only to read the QR codes on your labels.",
+          "recordAudioAndroidPermission": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#F4EFE3",
+          "imageWidth": 200
+        }
+      ]
+    ]
   }
 }
