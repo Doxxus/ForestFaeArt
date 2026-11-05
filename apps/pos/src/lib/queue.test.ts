@@ -21,6 +21,7 @@ describe("classifying failures", () => {
   });
   it("parks a sale the server refuses, with its reason", () => {
     expect(classifyError(httpError(409, "Moth is already sold."))).toEqual({ kind: "rejected", message: "Moth is already sold." });
+    expect(classifyError(httpError(400, '[\n  { "path": ["occurredAt"] }\n]'))).toMatchObject({ kind: "rejected", message: expect.not.stringContaining("occurredAt") });
     expect(classifyError(httpError(400, ""))).toMatchObject({ kind: "rejected" });
     expect(classifyError(httpError(404)).kind).toBe("rejected");
     expect(classifyError(httpError(403)).kind).toBe("rejected");

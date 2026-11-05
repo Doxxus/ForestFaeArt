@@ -17,6 +17,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         storage: { token: secureToken, ...storage },
         now: Date.now,
         newKey: newSaleKey,
+        isOnline: async () => {
+          const s = await Network.getNetworkStateAsync();
+          return s.isConnected !== false && s.isInternetReachable !== false;
+        },
       }),
     [],
   );

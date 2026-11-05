@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { effectiveEventId, PosStore, type CheckoutForm, type Persistence, type PosApi, type SessionUser } from "./store";
+import { effectiveEventId, PosStore, type CheckoutForm, type Persistence, type PosApi, type SessionUser, type StoreDeps } from "./store";
 import type { QueuedSale } from "../lib/queue";
 import type { Catalog, Piece, SaleRequest, SaleResult } from "../types";
 
@@ -127,13 +127,13 @@ class FakeStorage implements Persistence {
 }
 
 let keyN = 0;
-function setup(pieces: Piece[] = [piece()]) {
+function setup(pieces: Piece[] = [piece()], extra: Partial<StoreDeps> = {}) {
   const server = new FakeServer(pieces);
   const storage = new FakeStorage();
   const original = server.api();
   const api = { ...original, sales: { ...original.sales, record: { mutate: (r: SaleRequest) => { storage.log.push("send"); return original.sales.record.mutate(r); } } } } as PosApi;
   let clock = 1_000_000;
-  const store = new PosStore({ api: () => api, storage, now: () => clock, newKey: () => `key-${String(++keyN).padStart(8, "0")}` });
+  const store = new PosStore({ api: () => api, storage, now: () => clock, newKey: () => `key-${String(++keyN).padStart(8, "0")}`, ...extra });
   return { server, storage, store, advance: (ms: number) => (clock += ms), setClock: (t: number) => (clock = t) };
 }
 const form = (over: Partial<CheckoutForm> = {}): CheckoutForm => ({ method: "CASH", channel: "MARKET", discountCents: 0, discountReason: "", notes: "", customer: { kind: "none" }, receiptEmail: "", ...over });
@@ -398,4 +398,99 @@ describe("the phone's clock", () => {
     expect(seen).toBeGreaterThan(4_900_000);
     expect(seen).toBeLessThan(5_100_000);
   });
+  it("always sends a whole number of milliseconds, even when the clock difference is a half", async () => {
+    let tick = 0;
+    const seen: number[] = [];
+    const s = setup([piece()]);
+    const api = s.server.api();
+    s.server.serverTime = 2_000_000;
+    const store = new PosStore({
+      api: () => ({ ...api, sales: { ...api.sales, record: { mutate: async (r: SaleRequest) => { seen.push(r.occurredAt!); return api.sales.record.mutate(r); } } } }),
+      storage: s.storage,
+      now: () => 1_000_000 + 1 * (tick++ % 2),
+      newKey: () => "key-round-0001",
+    });
+    await store.start();
+    await store.signIn("a@b.co", "x");
+    await settle();
+    await settle();
+    store.addPiece(store.getState().catalog!.pieces[0]!);
+    await store.checkout(form());
+    expect(seen.length).toBeGreaterThan(0);
+    for (const t of seen) expect(Number.isInteger(t)).toBe(true);
+  });
+  it("rounds the time on a sale that was saved with a fractional one", async () => {
+    const s = await signedIn();
+    s.server.online = false;
+    s.store.addPiece(s.store.getState().catalog!.pieces[0]!);
+    await s.store.checkout(form());
+    const queue = s.store.getState().queue.map((q) => ({ ...q, request: { ...q.request, occurredAt: 1_000_000.5 } }));
+    s.storage.queue = queue;
+    const again = setup();
+    again.server.pieces = s.server.pieces;
+    again.storage.queue = queue;
+    again.storage.tokenValue = "tok";
+    again.storage.userValue = user;
+    again.storage.catalog = s.storage.catalog;
+    let seen: number | undefined;
+    const api = again.server.api();
+    const store = new PosStore({ api: () => ({ ...api, sales: { ...api.sales, record: { mutate: async (r: SaleRequest) => { seen = r.occurredAt; return api.sales.record.mutate(r); } } } }), storage: again.storage, now: () => 1_000_000, newKey: () => "k" });
+    await store.start();
+    await settle();
+    await settle();
+    expect(seen).toBe(1_000_001);
+  });
 });
+
+describe("a bad connection at the till", () => {
+  it("saves the sale straight away, without calling the server, when the phone knows it has no connection", async () => {
+    const s = setup([piece()], { isOnline: async () => false });
+    await s.store.start();
+    await s.store.signIn("a@b.co", "x");
+    await settle();
+    await settle();
+    s.server.calls.length = 0;
+    s.store.addPiece(s.store.getState().catalog!.pieces[0]!);
+    const out = await s.store.checkout(form());
+    expect(out).toMatchObject({ kind: "queued", reason: "offline" });
+    expect(s.server.calls).toEqual([]);
+    expect(s.store.getState()).toMatchObject({ cart: [], online: false });
+    expect(s.store.getState().queue).toHaveLength(1);
+  });
+  it("stops waiting on a server that never answers and keeps the sale", async () => {
+    const s = setup([piece()], { checkoutWaitMs: 20 });
+    await s.store.start();
+    await s.store.signIn("a@b.co", "x");
+    await settle();
+    await settle();
+    const stuck = new PosStore({
+      api: () => ({ ...s.server.api(), sales: { ...s.server.api().sales, record: { mutate: () => new Promise<SaleResult>(() => undefined) } } }),
+      storage: s.storage,
+      now: () => 1_000_000,
+      newKey: () => "key-stuck-0001",
+      checkoutWaitMs: 20,
+    });
+    await stuck.start();
+    await stuck.refreshCatalog();
+    stuck.addPiece(stuck.getState().catalog!.pieces[0]!);
+    const out = await stuck.checkout(form());
+    expect(out.kind).toBe("queued");
+    expect(stuck.getState().cart).toEqual([]);
+    expect(stuck.getState().queue).toHaveLength(1);
+  });
+});
+
+describe("undoing a sale", () => {
+  it("puts the piece back on the phone's stock at once, even before the download finishes", async () => {
+    const s = await signedIn();
+    s.store.addPiece(s.store.getState().catalog!.pieces[0]!);
+    const out = await s.store.checkout(form());
+    expect(out.kind).toBe("recorded");
+    await settle();
+    expect(s.store.getState().catalog!.pieces[0]).toMatchObject({ status: "SOLD" });
+    s.server.online = false;
+    await s.store.restoreSale([{ productId: s.store.getState().catalog!.pieces[0]!.id, quantity: 1 }]);
+    expect(s.store.getState().catalog!.pieces[0]).toMatchObject({ status: "AVAILABLE", quantity: 1 });
+  });
+});
+

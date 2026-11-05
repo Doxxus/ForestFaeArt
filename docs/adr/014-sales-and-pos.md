@@ -41,9 +41,9 @@ Status: **accepted** (4 Nov 2026, Phase 6). The API, the admin screens and the a
 
 Expo SDK 58 / React Native, **Android only**, runs in **Expo Go for development** because it uses no custom native code (the camera, secure storage and storage modules are all part of Expo).
 
-- **Logic outside the screens.** `src/lib` holds the pure rules (reading a scan, finding pieces, cart, queue and sync, receipt text) and `src/state/store.ts` the `PosStore`, which owns the session, catalog, cart and queue. Neither imports React Native, so 54 tests run them in Node against a fake server. The screens are thin.
+- **Logic outside the screens.** `src/lib` holds the pure rules (reading a scan, finding pieces, cart, queue and sync, receipt text) and `src/state/store.ts` the `PosStore`, which owns the session, catalog, cart and queue. Neither imports React Native, so 59 tests run them in Node against a fake server. The screens are thin.
 - **Offline (POS-10, R6).**
-  1. A sale is **written to the phone first**, then sent. It stays queued until the server confirms.
+  1. A sale is **written to the phone first**, then sent. It stays queued until the server confirms. With no connection, or a server that doesn't answer within 8 seconds, checkout shows "Sale saved on this phone" straight away.
   2. The phone's copy of the stock is reduced immediately, so the same piece can't be sold twice while offline. A fresh catalog is re-adjusted for sales still waiting.
   3. Sync runs in order, oldest first, and stops at the first failure that would hit every later sale: no signal, a server problem, or a signed-out session. It runs at start-up, when the app returns to the front, when the connection returns, after each sale and every 20 seconds.
   4. A **refused** sale (for example the piece was sold elsewhere) is **parked for review** and the rest carry on. The More tab lists it with the server's reason, and offers Try again or Discard. The customer has already paid, so it is never dropped silently. A sale refused straight away (online) is not kept: the person stays on the checkout with the cart and the reason.
@@ -68,7 +68,18 @@ Expo SDK 58 / React Native, **Android only**, runs in **Expo Go for development*
 - **Admin "record a sale".** Sales are recorded in the POS app (including Etsy, Instagram and phone channels). A browser form would be a second path through the most careful code in the system.
 - **Tapping a sale in the POS to see its lines.** The Today list shows the count, method and customer, which is enough to find the sale to undo.
 - **Native Bluetooth printing in the app**, and a branded splash beyond the icon on a cream background.
-- **Testing on real phones.** The app was exercised in a browser against a mock of the API (sell, offline queue, automatic sync, Today, More), and its logic by the tests. The camera scan, the share sheet and secure storage need a phone, which is the next step.
+- **Testing on real phones.** The app was exercised in a browser against a mock of the API (sell, offline queue, automatic sync, Today, More), and its logic by the tests. On 4 Nov the developer ran it on a real Android phone in Expo Go: the camera scan, a sale, undo, airplane-mode queuing and the receipt share sheet all work (after the fixes below). Still open: an EAS preview build.
+
+## Fixes from the first phone test (4 Nov)
+
+| What the developer saw | Cause | Fix |
+|---|---|---|
+| A red box of JSON naming `occurredAt` ("expected int, received number"), about half the time | The phone's clock offset from the server is measured at the midpoint of a request, which is a half millisecond about half the time. The server only accepts a whole number. | The offset and the sale time are rounded to whole milliseconds. A sale already saved with a fractional time is rounded when it is sent. A refused request whose message is a validation dump now says "The server couldn't accept this sale" instead of the raw text. |
+| **Record sale** spun for a long time with no signal | The app waited for a request that could not work, up to the 12 second timeout (longer if a background sync held the line). | If the phone knows it has no connection (`expo-network`), the sale is saved and the "Sale saved on this phone" screen shows at once. With a weak signal, checkout stops waiting after 8 seconds and shows the same screen. The sale stays queued and sends itself. |
+| "This piece was already sold" after an undo | After **Undo**, the stock refreshed in the background, so a scan straight afterwards could see the old stock. (Not reproduced: the server's stock was correct.) | Undo puts the piece back on the phone's stock immediately, then refreshes. Catalog downloads are numbered, so an older answer arriving late can't overwrite a newer one. |
+| A yellow "Product: This piece was already sold" banner while a sale was sending | The phone takes a sold piece off its own stock before sending (so it can't be sold twice offline), and the Check out screen re-read that stock while the request was in flight. | The Check out screen keeps showing the cart as it was when the button was tapped until the sale settles. A real refusal from the server still shows its message. |
+
+The first three rows have tests in `store.test.ts` (the clock rounding, the stuck and the offline server, and the undo). The last row is a screen-only change with no screen test, because the app's tests cover logic, not screens; it was checked by hand on the phone.
 
 ## Consequences
 

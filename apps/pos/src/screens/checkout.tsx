@@ -42,9 +42,11 @@ export function CheckoutScreen() {
   const [fresh, setFresh] = useState({ firstName: "", lastName: "", email: "", phone: "", marketingConsent: false });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // While a sale is being sent the phone has already taken the piece off its stock. Keep showing the cart as it was.
+  const [frozen, setFrozen] = useState<typeof catalog | null>(null);
 
   const discountCents = parseMoneyField(discount);
-  const view = useMemo(() => viewCart(state.cart, indexById(catalog), discountCents ?? 0), [state.cart, catalog, discountCents]);
+  const view = useMemo(() => viewCart(state.cart, indexById(frozen ?? catalog), discountCents ?? 0), [state.cart, catalog, frozen, discountCents]);
 
   // Customer search needs the internet. Offline, a new customer can still be typed in.
   useEffect(() => {
@@ -96,6 +98,7 @@ export function CheckoutScreen() {
 
   const submit = async () => {
     if (!method || problem) return;
+    setFrozen(catalog);
     setBusy(true);
     setError(null);
     const form: CheckoutForm = {
@@ -113,6 +116,7 @@ export function CheckoutScreen() {
       receiptEmail: email,
     };
     const outcome = await store.checkout(form);
+    setFrozen(null);
     setBusy(false);
     if (outcome.kind === "recorded" || outcome.kind === "queued") nav.reset({ name: "done", outcome });
     else setError(outcome.message);

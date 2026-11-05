@@ -1,5 +1,5 @@
 import type { PaymentMethod, SaleChannel } from "@ffa/validators";
-import { applySale, applySales, indexById } from "../lib/catalog";
+import { applySale, applySales, applyVoid, indexById } from "../lib/catalog";
 import { addToCart, removeFromCart, setQuantity, viewCart, type CartLine, type CartResult } from "../lib/cart";
 import { classifyError, enqueue, pendingSales, syncQueue, type QueuedSale, type SyncOutcome } from "../lib/queue";
 import type { Catalog, CustomerHit, DaySummary, NewCustomer, Piece, SaleRequest, SaleResult, SaleSummary } from "../types";
@@ -42,7 +42,13 @@ export interface StoreDeps {
   storage: Persistence;
   now(): number;
   newKey(): string;
+  /** Whether the phone has a connection at all. Lets a sale skip waiting for a request that can't work. */
+  isOnline?(): Promise<boolean>;
+  /** How long checkout waits for the server before it settles for "saved on this phone". */
+  checkoutWaitMs?: number;
 }
+
+const CHECKOUT_WAIT_MS = 8_000;
 
 export type Phase = "loading" | "signed-out" | "ready";
 
@@ -99,6 +105,9 @@ export class PosStore {
   private saves: Promise<unknown> = Promise.resolve();
   /** How far the phone's clock is from the server's, so sale times are right even if the phone's clock is off. */
   private skewMs = 0;
+  /** Catalog requests are numbered so an old answer can't overwrite a newer one. */
+  private catalogSeq = 0;
+  private catalogApplied = 0;
 
   constructor(private readonly deps: StoreDeps) {}
 
@@ -133,7 +142,8 @@ export class PosStore {
     return effectiveEventId(this.state);
   }
 
-  private nowOnServer = () => this.deps.now() + this.skewMs;
+  /** Whole milliseconds, because the server only accepts an integer time. */
+  private nowOnServer = () => Math.round(this.deps.now() + this.skewMs);
 
   // ---- starting up and signing in ----
 
@@ -180,10 +190,13 @@ export class PosStore {
 
   async refreshCatalog(): Promise<boolean> {
     if (this.state.phase !== "ready") return false;
+    const seq = ++this.catalogSeq;
     try {
       const before = this.deps.now();
       const fresh = await this.api().pos.catalog.query();
-      this.skewMs = fresh.serverTime - (before + this.deps.now()) / 2;
+      if (seq < this.catalogApplied) return true;
+      this.catalogApplied = seq;
+      this.skewMs = Math.round(fresh.serverTime - (before + this.deps.now()) / 2);
       // Sales still waiting haven't reached the server, so the fresh stock doesn't know about them yet.
       const catalog = applySales(fresh, queuedLines(this.state.queue));
       this.set({ catalog, catalogAt: this.deps.now(), online: true });
@@ -194,6 +207,20 @@ export class PosStore {
       else this.set({ online: false });
       return false;
     }
+  }
+
+  /**
+   * Puts an undone sale's pieces back on the phone's stock straight away, so they can be sold again without waiting for
+   * the next catalog download. The download that follows corrects anything this guessed wrong.
+   */
+  async restoreSale(items: { productId: string; quantity: number }[]) {
+    const { catalog } = this.state;
+    if (catalog) {
+      this.catalogApplied = ++this.catalogSeq;
+      this.set({ catalog: applyVoid(catalog, items) });
+      await this.persist(() => (this.state.catalog ? this.deps.storage.saveCatalog(this.state.catalog) : Promise.resolve()));
+    }
+    await this.refreshCatalog();
   }
 
   async setEvent(choice: string | null | undefined) {
@@ -270,7 +297,24 @@ export class PosStore {
       if (this.state.catalog) await this.deps.storage.saveCatalog(this.state.catalog);
     });
 
-    const run = await this.syncNow();
+    const online = this.deps.isOnline ? await this.deps.isOnline().catch(() => true) : true;
+    if (!online) {
+      this.set({ online: false, cart: [] });
+      return { kind: "queued", sale: queued, reason: "offline" };
+    }
+
+    // A weak signal can hang for a long time. Stop waiting after a while: the sale is saved and the sync carries on.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const slow = new Promise<"slow">((resolve) => {
+      timer = setTimeout(() => resolve("slow"), this.deps.checkoutWaitMs ?? CHECKOUT_WAIT_MS);
+    });
+    const raced = await Promise.race([this.syncNow(), slow]);
+    clearTimeout(timer);
+    if (raced === "slow") {
+      this.set({ cart: [] });
+      return { kind: "queued", sale: this.state.queue.find((q) => q.key === key) ?? queued, reason: "offline" };
+    }
+    const run = raced;
     const sent = run.sent.find((s) => s.key === key);
     if (sent) {
       this.set({ cart: [] });
@@ -295,7 +339,7 @@ export class PosStore {
       if (!this.token || pendingSales(snapshot).length === 0 || this.state.phase === "loading") return { queue: snapshot, sent: [], stopped: null };
       this.set({ syncing: true });
       const api = this.api();
-      const out = await syncQueue(snapshot, (request) => api.sales.record.mutate(request));
+      const out = await syncQueue(snapshot, (request) => api.sales.record.mutate(request.occurredAt === undefined ? request : { ...request, occurredAt: Math.round(request.occurredAt) }));
 
       // Sales added while this ran aren't in the snapshot. Keep them.
       const known = new Set(snapshot.map((q) => q.key));

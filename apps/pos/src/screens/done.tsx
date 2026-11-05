@@ -63,7 +63,7 @@ export function DoneScreen({ outcome }: { outcome: Done }) {
       await store.client.sales.void.mutate({ saleId: sale.id, reason: reason.trim() });
       setUndone(true);
       setUndoing(false);
-      void store.refreshCatalog();
+      await store.restoreSale(sale.items.map((i) => ({ productId: i.productId, quantity: i.quantity })));
     } catch (error) {
       setNote({ tone: "error", text: friendlyError(error) });
     }

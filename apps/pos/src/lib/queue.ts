@@ -57,6 +57,7 @@ export function classifyError(error: unknown): Failure {
   if (typeof status !== "number") return { kind: "offline" };
   if (status === 401) return { kind: "sign-in" };
   if (status === 408 || status === 429 || status >= 500) return { kind: "server", message: "The server is busy." };
+  if (status === 400 && e.message?.trim().startsWith("[")) return { kind: "rejected", message: "The server couldn't accept this sale. Please try again, and tell the developer if it keeps happening." };
   return { kind: "rejected", message: e.message?.trim() || "The server couldn't record this sale." };
 }
 

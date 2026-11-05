@@ -76,6 +76,19 @@ export function applySale(catalog: Catalog, lines: { productId: string; quantity
   };
 }
 
+/** The opposite of a sale: an undone sale's pieces go back on the shelf. */
+export function applyVoid(catalog: Catalog, lines: { productId: string; quantity: number }[]): Catalog {
+  const back = new Map(lines.map((l) => [l.productId, l.quantity]));
+  return {
+    ...catalog,
+    pieces: catalog.pieces.map((p) => {
+      const n = back.get(p.id);
+      if (!n) return p;
+      return { ...p, quantity: p.quantity + n, status: p.status === "SOLD" ? "AVAILABLE" : p.status };
+    }),
+  };
+}
+
 /** The same thing for several waiting sales, used after a fresh catalog arrives that doesn't know about them yet. */
 export function applySales(catalog: Catalog, sales: { items: { productId: string; quantity: number }[] }[]): Catalog {
   return sales.reduce((c, s) => applySale(c, s.items), catalog);
