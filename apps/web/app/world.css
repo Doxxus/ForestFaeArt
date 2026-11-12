@@ -1,0 +1,282 @@
+/*
+ * The public site's green world (ADR 012). Everything here is presentation for app/(site) only: the admin never loads
+ * these classes. Decorative art lives in public/scene and public/kit, is aria-hidden, and never takes focus.
+ *
+ * Rules this file keeps (apps/web/tests/world.test.ts checks them):
+ *  1. Scroll-driven animation (animation-timeline) only ever appears inside both @supports and prefers-reduced-motion: no-preference.
+ *     Without either, the visitor sees the same still scene: nothing is hidden and nothing moves.
+ *  2. Only transform, translate, scale, rotate and opacity are animated, so it all stays on the compositor.
+ *  3. The reading panels are cream at 0.94 opacity (PANEL_OPACITY in @ffa/ui), so text contrast holds over the darkest scenery.
+ */
+
+.site-world {
+  --world-sky: #E3EFCF;
+  --world-mist: #D2E5B4;
+  --world-hill-far: #C3DB9A;
+  --world-meadow: #B5D08A;
+  --world-hill-mid: #9AC46D;
+  --world-leaf: #7FAE5B;
+  --world-canopy: #5E9150;
+  --world-pine: #3F7447;
+  --world-bark: #6A5638;
+  --world-floor: #2F4A3A;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  /* Sprouts and leaves may poke past the edge on a narrow phone. This stops that from ever scrolling the page sideways. */
+  overflow-x: clip;
+  background: var(--world-sky);
+}
+
+/* ---------- The fixed scene behind the page ---------- */
+
+.world,
+.world-air {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100lvh;
+  pointer-events: none;
+  overflow: hidden;
+}
+.world {
+  z-index: -1;
+  background: linear-gradient(to bottom, var(--world-sky) 0%, var(--world-sky) 14%, var(--world-meadow) 100%);
+}
+.world-air {
+  z-index: 10;
+}
+
+/* A layer is taller than what first shows: "vis" is the part in view at the top of the page and "travel" is how far it rises as you scroll. */
+.world-layer {
+  position: absolute;
+  left: 0;
+  bottom: calc(var(--travel) * -1);
+  width: 100%;
+  max-width: none;
+  height: calc(var(--vis) + var(--travel));
+  object-fit: cover;
+  object-position: 50% 0;
+  user-select: none;
+}
+.world-far { --vis: 46vh; --travel: 60px; }
+.world-mid { --vis: 56vh; --travel: 140px; display: none; }
+.world-near { --vis: 12vh; --travel: 190px; }
+
+/* The deep green of evening, laid over the far layers as the page goes on. */
+.world-dusk {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: linear-gradient(to bottom, rgb(47 74 58 / 0) 0%, rgb(47 74 58 / 0.42) 100%);
+}
+
+/* The home page gets the full scene. Every other page is calmer: no trunks, and fewer things in the air. */
+.site-world:has([data-world-level="full"]) .world-mid { display: block; }
+.site-world:has([data-world-level="full"]) .world-near { --vis: 18vh; }
+
+/* ---------- Drifting leaves and insects (a small fixed pool) ---------- */
+
+.leaf,
+.insect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  opacity: 0;
+}
+.leaf { width: var(--s, 28px); }
+.insect { width: var(--s, 64px); }
+.leaf img,
+.insect img { display: block; width: 100%; height: auto; }
+.leaf-1 { --s: 34px; --x0: 88vw; --xm: 58vw; --x1: 24vw; }
+.leaf-2 { --s: 26px; --x0: 8vw; --xm: 42vw; --x1: 74vw; }
+.leaf-3 { --s: 22px; --x0: 70vw; --xm: 40vw; --x1: 6vw; }
+.leaf-4 { --s: 30px; --x0: 30vw; --xm: 66vw; --x1: 96vw; }
+.leaf-5 { --s: 24px; --x0: 94vw; --xm: 62vw; --x1: 30vw; }
+.insect-1 { --s: 72px; }
+.insect-2 { --s: 84px; }
+.insect-turn { display: block; rotate: 90deg; }
+.insect-2 .insect-turn { rotate: -90deg; }
+
+/* ---------- Reading panels ---------- */
+
+.panel-wrap {
+  position: relative;
+  width: calc(100% - 1.5rem);
+  margin: 3.25rem auto 0;
+}
+.panel-wrap:first-child { margin-top: 1.5rem; }
+/* A toadstool on the first panel would otherwise stand in front of the header's menu, so leave room under the header for it. */
+@media (min-width: 640px) {
+  .panel-wrap:first-child:has(> .sprout) { margin-top: 6rem; }
+}
+.panel-wrap-solo { margin: 0 auto; }
+.panel {
+  position: relative;
+  border-radius: 1.25rem;
+  background: rgb(244 239 227 / 0.94);
+  border: 1px solid rgb(255 255 255 / 0.45);
+  box-shadow: 0 14px 34px -20px rgb(30 48 36 / 0.6);
+  padding: 2rem 1.25rem;
+}
+@media (min-width: 640px) {
+  .panel { padding: 2.5rem 2.5rem; }
+  .panel.panel-roomy { padding: 2.5rem 3rem; }
+}
+/* Blur is only worth its cost on larger screens, where there is more to see through it. */
+@media (min-width: 768px) {
+  .panel { -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+}
+
+/* ---------- Toadstools that grow out of the edge of a panel ---------- */
+
+.sprout {
+  position: absolute;
+  bottom: calc(100% - 7px);
+  z-index: 1;
+  display: none;
+  pointer-events: none;
+  transform-origin: 50% 100%;
+}
+.sprout img { display: block; width: 100%; height: auto; }
+.sprout-mobile { display: block; }
+@media (min-width: 640px) {
+  .sprout { display: block; }
+}
+.sprout-left { left: 5%; }
+.sprout-right { right: 5%; }
+.sprout-center { left: 50%; translate: -50% 0; }
+.sprout-cluster { width: 8.5rem; }
+.sprout-tall { width: 5.5rem; }
+.sprout-ring { width: 7rem; }
+@media (min-width: 640px) {
+  .sprout-cluster { width: 11rem; }
+  .sprout-tall { width: 6.5rem; }
+  .sprout-ring { width: 8.5rem; }
+}
+
+/* ---------- The forest floor (the footer) ---------- */
+
+.floor {
+  position: relative;
+  margin-top: 5.5rem;
+  background: var(--world-floor);
+}
+.floor-edge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% - 1px);
+  height: 100px;
+  pointer-events: none;
+  background: url("/scene/floor-edge.svg") repeat-x 0 100% / 600px 100px;
+}
+.floor .sprout { bottom: calc(100% + 30px); z-index: 2; }
+
+.firefly {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--color-champagne, #E8D9B0);
+  box-shadow: 0 0 8px 2px rgb(232 217 176 / 0.8);
+  opacity: 0.8;
+  pointer-events: none;
+}
+.firefly:nth-of-type(n + 5) { display: none; }
+@media (min-width: 640px) {
+  .firefly:nth-of-type(n + 5) { display: block; }
+}
+
+/* ---------- The home hero sits straight on the scene ---------- */
+
+.hero.hero-open {
+  background: radial-gradient(ellipse 55% 62% at 50% 46%, rgb(244 239 227 / 0.72), transparent 74%);
+}
+
+/* ---------- Motion ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes leaf-sway {
+    from { rotate: -28deg; translate: -10px 0; }
+    to { rotate: 32deg; translate: 12px 0; }
+  }
+  @keyframes insect-flap {
+    from { scale: 1 1; }
+    to { scale: 0.55 1; }
+  }
+  @keyframes firefly {
+    0%, 100% { transform: translate3d(0, 0, 0); opacity: 0.15; }
+    35% { opacity: 0.95; }
+    50% { transform: translate3d(var(--dx, 18px), var(--dy, -22px), 0); }
+    70% { opacity: 0.9; }
+  }
+  .leaf img { animation: leaf-sway 4.6s ease-in-out infinite alternate; }
+  .leaf-2 img { animation-duration: 5.6s; animation-delay: -1.5s; }
+  .leaf-3 img { animation-duration: 3.9s; animation-delay: -0.8s; }
+  .leaf-4 img { animation-duration: 6.2s; animation-delay: -2.4s; }
+  .leaf-5 img { animation-duration: 4.2s; animation-delay: -3s; }
+  .insect img { animation: insect-flap 0.34s ease-in-out infinite alternate; }
+  .firefly { animation: firefly var(--t, 9s) ease-in-out infinite; animation-delay: var(--d, 0s); }
+
+  /* Scroll-driven motion, only where the browser supports it. Elsewhere this whole block is skipped and the scene stays still. */
+  @supports (animation-timeline: scroll()) {
+    @keyframes world-rise {
+      to { transform: translate3d(0, calc(var(--travel) * -1), 0); }
+    }
+    @keyframes world-dusk {
+      to { opacity: 1; }
+    }
+    @keyframes leaf-fly {
+      0% { translate: var(--x0) -12vh; opacity: 0; }
+      8% { opacity: 1; }
+      50% { translate: var(--xm) 50vh; }
+      92% { opacity: 1; }
+      100% { translate: var(--x1) 112vh; opacity: 0; }
+    }
+    @keyframes insect-fly {
+      0% { translate: -22vw 40vh; opacity: 0; }
+      8% { opacity: 1; }
+      28% { translate: 24vw 26vh; }
+      52% { translate: 54vw 42vh; }
+      76% { translate: 84vw 28vh; }
+      92% { opacity: 1; }
+      100% { translate: 122vw 36vh; opacity: 0; }
+    }
+    @keyframes sprout-grow {
+      from { scale: 0.12; opacity: 0; }
+      35% { opacity: 1; }
+      to { scale: 1; opacity: 1; }
+    }
+
+    .world-layer { animation: world-rise linear both; animation-timeline: scroll(root); will-change: transform; }
+    .world-dusk { animation: world-dusk linear both; animation-timeline: scroll(root); }
+
+    .leaf, .insect { display: block; animation-timing-function: linear; animation-fill-mode: both; animation-timeline: scroll(root); }
+    .leaf { animation-name: leaf-fly; }
+    .insect { animation-name: insect-fly; }
+    .leaf-3, .leaf-4, .leaf-5, .insect { display: none; }
+    .leaf-1 { animation-range: 0% 42%; }
+    .leaf-2 { animation-range: 14% 58%; }
+    .leaf-3 { animation-range: 30% 72%; }
+    .leaf-4 { animation-range: 46% 88%; }
+    .leaf-5 { animation-range: 58% 100%; }
+    .insect-1 { animation-range: 18% 52%; }
+    .insect-2 { animation-range: 60% 94%; animation-direction: reverse; }
+    @media (min-width: 640px) {
+      .site-world:has([data-world-level="full"]) .leaf-3,
+      .site-world:has([data-world-level="full"]) .leaf-4,
+      .site-world:has([data-world-level="full"]) .leaf-5,
+      .site-world:has([data-world-level="full"]) .insect { display: block; }
+    }
+  }
+
+  /* Each toadstool grows as it comes into view: it starts small at the bottom of the screen and is full size by the middle. */
+  @supports (animation-timeline: view()) {
+    .sprout { animation: sprout-grow linear both; animation-timeline: view(); animation-range: entry 0% cover 40%; }
+  }
+}

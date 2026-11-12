@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./world.css";
 
 /* Brand tokens from packages/ui/src/tokens.ts (ADR 005). tokens.test.ts in this app fails if they drift apart. */
 @theme {

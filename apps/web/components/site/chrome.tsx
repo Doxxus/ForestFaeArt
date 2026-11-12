@@ -1,6 +1,18 @@
 import Link from "next/link";
 import type { SiteSettings } from "@/lib/site";
 import { Kit, MothMark } from "./kit";
+import { Sprout } from "./world";
+
+// Fixed positions (not random) so the server and browser always agree.
+const FIREFLIES = [
+  { l: "7%", t: "22%", s: "9s", d: "0s", dx: "18px", dy: "-22px" },
+  { l: "21%", t: "64%", s: "11s", d: "2s", dx: "-16px", dy: "-18px" },
+  { l: "38%", t: "30%", s: "8s", d: "4s", dx: "22px", dy: "-14px" },
+  { l: "55%", t: "72%", s: "12s", d: "1s", dx: "-20px", dy: "-26px" },
+  { l: "68%", t: "26%", s: "10s", d: "5s", dx: "16px", dy: "-20px" },
+  { l: "82%", t: "58%", s: "9.5s", d: "3s", dx: "-18px", dy: "-16px" },
+  { l: "93%", t: "34%", s: "11.5s", d: "6s", dx: "14px", dy: "-24px" },
+];
 
 const NAV = [
   { href: "/portfolio", label: "Portfolio" },
@@ -51,9 +63,17 @@ export function SiteFooter({ settings }: { settings: SiteSettings }) {
   ].filter((l): l is { href: string; label: string } => l !== null);
 
   return (
-    <footer className="relative mt-16 overflow-hidden bg-forest text-champagne">
-      <Kit name="divider-vine-light" className="mx-auto -mt-px h-auto w-full max-w-xl opacity-90" />
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 pb-10 pt-6 sm:grid-cols-3">
+    <footer className="floor text-champagne">
+      <div className="floor-edge" aria-hidden="true" />
+      <Sprout kind="ring" at="left" mobile />
+      <Sprout kind="tall" at="right" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        {FIREFLIES.map((f) => (
+          <span key={f.l} className="firefly" style={{ left: f.l, top: f.t, ["--t" as string]: f.s, ["--d" as string]: f.d, ["--dx" as string]: f.dx, ["--dy" as string]: f.dy }} />
+        ))}
+      </div>
+      <Kit name="divider-vine-light" className="relative mx-auto -mt-px h-auto w-full max-w-xl opacity-90" />
+      <div className="relative mx-auto grid max-w-6xl gap-8 px-4 pb-10 pt-6 sm:grid-cols-3">
         <div>
           <p className="font-display text-xl uppercase tracking-[0.14em] text-cream">{settings.businessName}</p>
           {settings.tagline ? <p className="mt-2 max-w-xs">{settings.tagline}</p> : null}

@@ -1,5 +1,15 @@
 import type { CSSProperties } from "react";
 import { KIT, type KitName } from "@/lib/kit-manifest";
+import { SCENE, type SceneName } from "@/lib/scene-manifest";
+
+/**
+ * Art for the public site's green world (ADR 012). Files live in public/scene and are made by `pnpm --filter @ffa/ui kit`.
+ * Always decorative: hidden from screen readers, never focusable, and sized from the manifest so nothing jumps.
+ */
+export function Scene({ name, className, style, eager }: { name: SceneName; className?: string; style?: CSSProperties; eager?: boolean }) {
+  const { width, height } = SCENE[name];
+  return <img src={`/scene/${name}.svg`} alt="" aria-hidden="true" width={width} height={height} loading={eager ? "eager" : "lazy"} decoding="async" className={className} style={style} />;
+}
 
 /**
  * Decorative art from the SVG kit (UX-2, UX-9). Files live in public/kit and are made by `pnpm --filter @ffa/ui kit`.

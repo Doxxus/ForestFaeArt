@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { CardGrid, ProductCard, Prose, SectionHeading } from "@/components/site/cards";
 import { EventCard } from "@/components/site/events";
 import { Hero } from "@/components/site/hero";
+import { Panel, WorldLevel } from "@/components/site/world";
 import { buttonClass } from "@/components/ui";
 import { errorCode } from "@/lib/api";
 import { jsonLd, organizationLd } from "@/lib/seo";
@@ -30,7 +31,7 @@ export default async function Home() {
 
   const eventsSection =
     upcoming.length > 0 ? (
-      <section key="events" aria-labelledby="events-heading" className="mx-auto max-w-6xl px-4 py-12">
+      <Panel key="events" as="section" aria-labelledby="events-heading" sprout={{ kind: "ring", at: "right", mobile: true }}>
         <SectionHeading id="events-heading" intro="Come and say hello at a market near you.">
           Where to find us
         </SectionHeading>
@@ -44,12 +45,12 @@ export default async function Home() {
             See all events
           </Link>
         </p>
-      </section>
+      </Panel>
     ) : null;
 
   const workSection =
     pieces.length > 0 ? (
-      <section key="work" aria-labelledby="work-heading" className="mx-auto max-w-6xl px-4 py-12">
+      <Panel key="work" as="section" aria-labelledby="work-heading" sprout={{ kind: "cluster", at: "left", mobile: true }}>
         <SectionHeading id="work-heading">{pieces.some((p) => p.featured) ? "Featured work" : "Recent work"}</SectionHeading>
         <CardGrid>
           {pieces.map((p) => (
@@ -61,11 +62,12 @@ export default async function Home() {
             See the whole portfolio
           </Link>
         </p>
-      </section>
+      </Panel>
     ) : null;
 
   return (
     <>
+      <WorldLevel level="full" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(organizationLd({ name: settings.businessName, tagline: settings.tagline, email: settings.publicEmail, sameAs: [settings.instagramUrl, settings.etsyUrl, settings.facebookUrl].filter(Boolean), logoPath: "/kit/mark.svg" })) }} />
       <Hero settings={settings}>
         <Link href={eventsFocus && upcoming.length ? "/events" : "/portfolio"} className={buttonClass("primary", "px-6")}>
@@ -80,27 +82,25 @@ export default async function Home() {
       {workSection}
 
       {categories.length > 0 ? (
-        <section aria-labelledby="browse-heading" className="bg-parchment/60 py-12">
-          <div className="mx-auto max-w-6xl px-4">
-            <SectionHeading id="browse-heading">Browse by kind</SectionHeading>
-            <ul className="flex flex-wrap justify-center gap-3">
-              {categories.map((c) => (
-                <li key={c.slug}>
-                  <Link href={`/portfolio?category=${c.slug}`} className="lift inline-flex min-h-11 items-center gap-2 rounded-full border border-forest/40 bg-cream px-5 py-2 font-display text-lg text-forest">
-                    {c.name}
-                    <span className="text-sm text-moss">({c.count})</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
+        <Panel as="section" aria-labelledby="browse-heading" size="4xl" sprout={{ kind: "tall", at: "center" }}>
+          <SectionHeading id="browse-heading">Browse by kind</SectionHeading>
+          <ul className="flex flex-wrap justify-center gap-3">
+            {categories.map((c) => (
+              <li key={c.slug}>
+                <Link href={`/portfolio?category=${c.slug}`} className="lift inline-flex min-h-11 items-center gap-2 rounded-full border border-forest/40 bg-cream px-5 py-2 font-display text-lg text-forest">
+                  {c.name}
+                  <span className="text-sm text-moss">({c.count})</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Panel>
       ) : null}
 
       {!eventsFocus ? eventsSection : null}
 
       {teaser ? (
-        <section aria-labelledby="about-heading" className="mx-auto max-w-3xl px-4 py-12 text-center">
+        <Panel as="section" aria-labelledby="about-heading" size="3xl" className="text-center" sprout={{ kind: "ring", at: "left" }}>
           <SectionHeading id="about-heading">{teaser.title}</SectionHeading>
           <Prose paragraphs={paragraphs(teaser.body)} className="mx-auto text-left" />
           <p className="mt-6">
@@ -108,7 +108,7 @@ export default async function Home() {
               Read more about the work
             </Link>
           </p>
-        </section>
+        </Panel>
       ) : null}
     </>
   );

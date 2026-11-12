@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { EventCard } from "@/components/site/events";
 import { EmptyArt, PageHeader, SectionHeading } from "@/components/site/cards";
+import { Panel } from "@/components/site/world";
 import { API_URL } from "@/lib/config";
 import { serverApi } from "@/lib/session";
 
@@ -11,7 +12,7 @@ export default async function EventsPage() {
   const [upcoming, past] = await Promise.all([api.events.publicList.query({ when: "upcoming" }), api.events.publicList.query({ when: "past" })]);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
+    <Panel size="4xl" sprout={{ kind: "ring", at: "right" }}>
       <PageHeader title="Events" art={["cicada", "dragonfly"]} className="mb-10">
         <p className="mx-auto mt-3 max-w-xl text-lg text-moss">Markets and shows where you can meet the work in person.</p>
         {upcoming.length ? (
@@ -49,6 +50,6 @@ export default async function EventsPage() {
           </ol>
         </section>
       ) : null}
-    </div>
+    </Panel>
   );
 }

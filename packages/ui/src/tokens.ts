@@ -24,6 +24,28 @@ export const colors = {
 
 export type ColorToken = keyof typeof colors;
 
+/**
+ * The public site's green world (ADR 012). Site-only: the admin never uses these.
+ * Ordered from the sky down to the forest floor. The scenery art and the `.site-world` CSS variables both come from here.
+ */
+export const world = {
+  sky: "#E3EFCF", // the top of the page, and the hero
+  mist: "#D2E5B4", // the farthest hills
+  hillFar: "#C3DB9A",
+  meadow: "#B5D08A",
+  hillMid: "#9AC46D",
+  leaf: "#7FAE5B", // spring leaf
+  canopy: "#5E9150",
+  pine: "#3F7447",
+  bark: "#6A5638", // distant trunks
+  floor: "#2F4A3A", // the forest floor: the same as brand forest, and the darkest thing in the scene
+} as const;
+
+export type WorldToken = keyof typeof world;
+
+/** How opaque the cream reading panels are over the scene (ADR 012: "a little transparency", capped so text contrast always holds). */
+export const PANEL_OPACITY = 0.94;
+
 export const fonts = {
   // Self-hosted, SIL OFL. The wordmark outlines are already in the SVG kit.
   display: "Marcellus", // headings and the wordmark (flared serif capitals)

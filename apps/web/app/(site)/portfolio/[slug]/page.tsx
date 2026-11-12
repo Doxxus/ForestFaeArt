@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { CardGrid, ProductCard, Prose, SectionHeading } from "@/components/site/cards";
 import { Gallery, type GalleryImage } from "@/components/site/gallery";
+import { Panel } from "@/components/site/world";
 import { InquiryForm } from "@/components/site/inquiry-form";
 import { PhotoPlaceholder } from "@/components/placeholder";
 import { Alert, Badge, buttonClass } from "@/components/ui";
@@ -62,7 +63,7 @@ export default async function ProductPage({ params, searchParams }: { params: Pa
   const etsy = piece.etsyUrl;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <Panel size="6xl" sprout={{ kind: "ring", at: "right" }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(productLd({ title: piece.title, description: piece.description, sku: piece.sku, slug: piece.slug, status: piece.status, priceCents: piece.priceCents, currency: piece.currency, images: piece.images.slice(0, 4).map((i) => imageSrc(i.path, 1280)) })) }} />
       <nav aria-label="Breadcrumb" className="mb-5 text-moss">
         <ol className="flex flex-wrap items-center gap-x-2">
@@ -180,6 +181,6 @@ export default async function ProductPage({ params, searchParams }: { params: Pa
           </CardGrid>
         </section>
       ) : null}
-    </div>
+    </Panel>
   );
 }

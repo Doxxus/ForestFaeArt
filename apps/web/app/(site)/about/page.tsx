@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageHeader, Prose } from "@/components/site/cards";
 import { Kit } from "@/components/site/kit";
+import { Panel } from "@/components/site/world";
 import { errorCode } from "@/lib/api";
 import { serverApi } from "@/lib/session";
 import { getSite, imageSrc, imageSrcSet, paragraphs } from "@/lib/site";
@@ -30,7 +31,7 @@ export default async function AboutPage() {
   if (!page) notFound();
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
+    <Panel size="4xl" sprout={{ kind: "cluster", at: "left" }}>
       <PageHeader title={page.title} art={["scarab", "stag-beetle"]} />
       <div className={page.imagePath ? "grid items-start gap-8 md:grid-cols-[1fr_1.2fr]" : ""}>
         {page.imagePath ? (
@@ -48,6 +49,6 @@ export default async function AboutPage() {
           <Prose paragraphs={paragraphs(settings.sourcingStatement)} className="mt-3" />
         </section>
       ) : null}
-    </div>
+    </Panel>
   );
 }

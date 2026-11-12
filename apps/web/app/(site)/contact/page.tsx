@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageHeader, Prose } from "@/components/site/cards";
 import { InquiryForm } from "@/components/site/inquiry-form";
+import { Panel } from "@/components/site/world";
 import { Alert } from "@/components/ui";
 import { errorCode } from "@/lib/api";
 import { serverApi } from "@/lib/session";
@@ -25,7 +26,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
   ].filter((l): l is { href: string; label: string } => l !== null);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
+    <Panel size="5xl" sprout={{ kind: "tall", at: "left" }}>
       <PageHeader title={page.title} art={["wildflowers", "atlas-moth"]} />
       <div className="grid gap-10 md:grid-cols-[1fr_1.4fr]">
         <div>
@@ -65,6 +66,6 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
           <InquiryForm returnTo="/contact" />
         </section>
       </div>
-    </div>
+    </Panel>
   );
 }

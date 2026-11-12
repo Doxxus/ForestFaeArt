@@ -15,10 +15,10 @@ const POLLEN = [
   { l: "36%", b: "40%", s: 3, t: "20s", d: "11s", dx: "18px" },
 ];
 
-/** The layered home hero (WEB-1): foil title, ornaments, ferns, drifting insects and pollen. All motion is CSS and switches off for reduced motion. */
+/** The home hero (WEB-1): foil title, drifting moths and pollen, straight on the green scene. All motion is CSS and switches off for reduced motion. */
 export function Hero({ settings, children }: { settings: SiteSettings; children?: React.ReactNode }) {
   return (
-    <section className="hero" aria-labelledby="hero-title">
+    <section className="hero hero-open" aria-labelledby="hero-title">
       <div className="hero-layer" aria-hidden="true">
         <div className="parallax-slow hero-art left-[-3%] top-[1%] w-[30%] max-w-[210px] opacity-95 sm:left-[2%] sm:top-[6%] sm:w-[21%]">
           <Kit name="luna-moth" className="drift-a h-auto w-full" style={{ ["--r" as string]: "-8deg" }} eager />
@@ -29,10 +29,6 @@ export function Hero({ settings, children }: { settings: SiteSettings; children?
         <div className="parallax-slow hero-art right-[8%] top-[8%] hidden w-[8%] max-w-[100px] opacity-85 lg:block">
           <Kit name="dragonfly" className="drift-a h-auto w-full" style={{ ["--r" as string]: "14deg" }} />
         </div>
-        <Kit name="fern" className="hero-art bottom-0 left-0 hidden h-auto w-36 opacity-80 sm:block lg:w-44" />
-        <Kit name="fern" className="hero-art bottom-0 right-0 hidden h-auto w-36 -scale-x-100 opacity-80 lg:block lg:w-44" />
-        <Kit name="corner" className="hero-art left-0 top-0 w-16 sm:w-28" eager />
-        <Kit name="corner" className="hero-art right-0 top-0 w-16 -scale-x-100 sm:w-28" eager />
         {POLLEN.map((p) => (
           <span key={p.l + p.b} className="pollen" style={{ left: p.l, bottom: p.b, width: p.s, height: p.s, ["--t" as string]: p.t, ["--d" as string]: p.d, ["--dx" as string]: p.dx }} />
         ))}

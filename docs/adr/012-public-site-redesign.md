@@ -1,6 +1,6 @@
 # ADR 012: Public site redesign (Phase 9)
 
-Status: **proposed** (4 Nov 2026). Direction agreed with the developer on 4 Nov; nothing is built yet. The build window is **8 to 14 Dec 2026** (Phase 9), ending at the feature freeze. Phase 5 starts first.
+Status: **built and on staging, awaiting the developer's review** (12 Nov 2026). Direction agreed with the developer on 4 Nov. The developer asked to start Phase 9 early on 12 Nov, ahead of its 8 to 14 Dec window (Phase 8 follows it), so the window now serves as review and polish time. Feature freeze is still 14 Dec. See "What was built" at the end for the decisions made during the build, what was measured, and what is still open.
 
 ## Why
 
@@ -85,5 +85,63 @@ Techniques: `transform` and `opacity` only, `will-change` sparingly, `content-vi
 - **Art effort:** layered scenery is more drawing than the first kit. The generator should make it cheap, but the look will need a few review rounds. **Plan one review of the home scene mid-phase**, not only at the end.
 - **Browser support:** scroll-driven CSS animation is not in every older browser. The still scene is the intended experience there, not a bug.
 - **Brightness and legibility:** green on green is easy to get muddy. Keep the reading panels and headings clearly separated from the scenery.
-- **Open question for the build:** exact greens (to be shown as swatches against the cream panels for approval before they are applied everywhere).
-- **Open question for the build:** whether the footer's dark forest band stays or becomes part of the forest-floor scene.
+- **Open question for the build:** exact greens (to be shown as swatches against the cream panels for approval before they are applied everywhere). **Decided 12 Nov: "Spring meadow", see below.**
+- **Open question for the build:** whether the footer's dark forest band stays or becomes part of the forest-floor scene. **Decided 12 Nov: it becomes the forest floor, see below.**
+
+## What was built (12 Nov 2026)
+
+### Decisions made when the build started
+
+| Question | Decision |
+|---|---|
+| Exact greens | **Spring meadow** (fresh and airy): sky `#E3EFCF`, meadow `#B5D08A`, spring leaf `#7FAE5B`, forest floor `#2F4A3A` (the brand forest), plus in-between hills and canopy tones. Chosen over "Storybook forest" (deeper) and "Soft sage meadow" (closest to the old look). The full list is `world` in `packages/ui/src/tokens.ts` |
+| Footer | The dark band **is the forest floor**: grass along its top edge, toadstools growing out of it, and fireflies drifting in it |
+| Review rhythm | Palette, home scene and the calm inner pages first, then **pause for the developer's review on staging** before the polish pass (this is that pause) |
+
+### How it works
+
+- **One scene, never remounted.** `app/(site)/layout.tsx` wraps every public page in `.site-world` and renders `<World />` once: a fixed sky gradient, three picture layers (far hills, mid trunks and ferns, near grass and flowers), an evening tint, and a small pool of leaves and insects. Moving between pages does not reload it.
+- **A page picks how much of the scene it wants with a marker.** The home page renders `<WorldLevel level="full" />`; every other page says nothing and is "calm". CSS reads the marker with `:has()`, so calm pages show the far hills and near grass only, with two leaves, and the home page adds the trunks, three more leaves and the insects. Browsers without `:has()` simply get the calm version everywhere.
+- **Parallax is scroll-driven CSS.** Each layer is taller than what first shows (`--vis`) and rises by its own `--travel` (60, 140 and 190 px, far to near) across the page's scroll (`animation-timeline: scroll(root)`), so the far hills barely move and the grass moves most. The evening tint fades in the same way, and the page ends on the forest floor.
+- **Toadstools** (`<Sprout>`, three drawings) stand on the top edge of reading panels and the footer, and grow with `animation-timeline: view()` as they scroll into view (small at the bottom of the screen, full size by the middle).
+- **Leaves and insects** are a fixed pool (five leaves, a swallowtail and a dragonfly), each scroll-driven across its own slice of the page, with a time-based sway or wing-flap on the inner image. Insects only appear on the home page, from 640 px wide.
+- **Reading panels** (`<Panel>`) are cream at 94% with a 4 px blur from 768 px up, and sit in front of the scene. Every public page's content is in one (the home page has one per section). The hero sits straight on the scene with a soft cream glow behind its words.
+- **The "Coming soon" page** gets the same world, since it is the first thing anyone sees at the real address.
+- **Art** is drawn by `packages/ui/scripts/kit/scenery.ts` (seeded, so it is identical every run), written to `apps/web/public/scene/` and `lib/scene-manifest.ts` by `pnpm --filter @ffa/ui kit`. The style guide (admin) shows the world's colours and every scenery piece.
+- **No JavaScript was added** and no dependencies. All components are server components.
+
+### Mobile budget, as measured
+
+| Measure | Target | Result |
+|---|---|---|
+| JavaScript added | 0 KB | **0 KB** |
+| Extra art on first load (home) | about 60 KB or less | **36 KB** of scenery (far 5.1, mid 19.2, near 11.5), plus the two hero moths that were already there. The insects, leaves, toadstools and footer grass are lazy and mostly below or beside the fold. A test fails above 60 KB |
+| Scrolling layers at once on a phone | 3 or fewer, plus 2 or fewer drifting things | **3 layers** (far, mid, near) and **2 leaves**. Insects and the other three leaves are hidden below 640 px |
+| Blur on a phone | cheap | **None** below 768 px (panels are simply opaque cream) |
+| Layout shift | 0.05 or less | Every image has width and height from its manifest, layers are fixed-position, and nothing is inserted after load. **Not yet measured** |
+| Lighthouse mobile and LCP | 90 or more, 2.5 s or less | **Not yet measured.** The staging site shows "Coming soon" to anyone not signed in, so it can't be scored there. Run it on the real address in Phase 8, or from a signed-in session on staging |
+| Smooth scrolling on the developer's real phone | no visible stutter | **Still to do**: needs the developer's phone |
+
+### Accessibility, as checked
+
+- axe-core: **no violations** on the home page, portfolio, events, About, Contact and the not-found page, at 1280 px and at 375 px, with no sideways scrolling. (axe lists colour contrast as "needs review" over translucent panels, as the ADR predicted. See the next point.)
+- Contrast is checked by calculation: `tokens.test.ts` lays the panel (cream at 94%) over the darkest thing in the scene (the forest floor) and requires 4.5:1 for ink, forest, moss and deep copper on top, and checks the hero's text on the sky and meadow. `PANEL_OPACITY` is one number shared by the test and the stylesheet (`world.test.ts` checks they agree).
+- Reduced motion: checked in the browser. Nothing animates, the leaves and insects are not shown, the toadstools are fully grown, and the scene stands still. Browsers without scroll-driven animation get the same still scene, because every scroll-driven rule sits inside both `@supports` and `prefers-reduced-motion: no-preference` (a test parses `world.css` and fails if one doesn't).
+- All scenery is `aria-hidden`, has empty alt text, and is never focusable. The skip link, focus rings, mobile menu and gallery are unchanged.
+
+### Tests added
+
+`packages/ui`: the scenery files exist, are within their budgets, are self-contained, use only brand and world colours, are up to date with the drawing code, and the first-load total stays within 60 KB; the world palette runs light to dark, and panel and hero contrast hold. `apps/web/tests/world.test.ts`: scroll-driven animation is always behind `@supports` and the no-preference media query, only compositor-friendly properties are animated, infinite animations respect reduced motion, blur is large-screen only, CSS variables match the tokens, and the admin never uses the scene.
+
+### Departures from the plan
+
+- **`content-visibility: auto` was not used.** It clips overflow, which would cut off the toadstools standing on panel edges, and the pages are short. Revisit only if Lighthouse asks for it.
+- **Everything on the page now sits in a panel**, not only "cards and text panels", because the greens are too mid-tone for the moss secondary text to reach 4.5:1 directly on them.
+- **The hero lost its corner ornaments and ferns**, which fought with the new grass and trunks. The luna moth, swallowtail, dragonfly and pollen stay.
+- **The "Coming soon" page was redone too** (not in the original scope list, but it is the public face until publishing).
+
+### Still open
+
+- The developer's review of the look on staging (sign in, then browse the site in preview). Expect a few rounds on the art: trunks, grass density, how often things drift past, how many toadstools.
+- Lighthouse mobile, LCP and CLS on the real address, and a scroll test on the developer's phone.
+- Polish ideas not yet done: a gentle sun-glow behind the hero, toadstools in the footer that react to hover, and seasonal tinting.

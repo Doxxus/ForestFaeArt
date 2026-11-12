@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DateLeaf } from "@/components/site/events";
 import { Prose } from "@/components/site/cards";
+import { Panel } from "@/components/site/world";
 import { buttonClass } from "@/components/ui";
 import { errorCode } from "@/lib/api";
 import { API_URL } from "@/lib/config";
@@ -52,7 +53,7 @@ export default async function EventPage({ params }: { params: Params }) {
   const openDays = e.hours.filter((h) => h.open && h.close);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
+    <Panel size="4xl" sprout={{ kind: "tall", at: "right" }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(eventLd({ ...e, image: e.imagePath ? imageSrc(e.imagePath, 1280) : null })) }} />
       <p className="mb-5">
         <Link href="/events" className="text-moss underline underline-offset-4">
@@ -128,6 +129,6 @@ export default async function EventPage({ params }: { params: Params }) {
           </aside>
         </div>
       </article>
-    </div>
+    </Panel>
   );
 }

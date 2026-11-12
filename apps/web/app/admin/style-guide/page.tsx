@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { AA_LARGE, AA_NORMAL, colors, contrast, fonts, textPairs } from "@ffa/ui";
-import { Kit } from "@/components/site/kit";
+import { AA_LARGE, AA_NORMAL, PANEL_OPACITY, colors, contrast, fonts, textPairs, world } from "@ffa/ui";
+import { Kit, Scene } from "@/components/site/kit";
 import { Badge, Button, Card, Field, Input, PageHeader, buttonClass } from "@/components/ui";
 import { KIT, type KitName } from "@/lib/kit-manifest";
+import { SCENE, type SceneName } from "@/lib/scene-manifest";
 import { requireUser } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Style guide" };
@@ -16,6 +17,8 @@ export default async function StyleGuide() {
   await requireUser();
   const names = Object.keys(KIT) as KitName[];
   const totalKb = Math.round(names.reduce((sum, n) => sum + KIT[n].bytes, 0) / 1024);
+  const sceneNames = Object.keys(SCENE) as SceneName[];
+  const sceneKb = Math.round(sceneNames.reduce((sum, n) => sum + SCENE[n].bytes, 0) / 1024);
 
   return (
     <>
@@ -95,6 +98,46 @@ export default async function StyleGuide() {
             <Input id="sample" placeholder="Placeholder text" />
           </Field>
         </div>
+      </Card>
+
+      <Card title="The green world (public site)" className="mb-6">
+        <p className="mb-4 text-moss">
+          The public website sits in a layered woodland that moves a little as you scroll (see ADR 012). These colours and pieces are used only there, never in this admin. Reading panels are cream at {Math.round(PANEL_OPACITY * 100)}% opacity, so text always has enough contrast, even over the darkest scenery.
+        </p>
+        <ul className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {Object.entries(world).map(([name, hex]) => (
+            <li key={name} className="overflow-hidden rounded-lg border border-stone">
+              <div className="h-12" style={{ background: hex }} />
+              <div className="bg-cream p-2 text-sm">
+                <p className="font-medium text-forest">{name}</p>
+                <p className="text-moss">{hex}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <p className="mb-4 text-moss">
+          {sceneNames.length} pieces, {sceneKb} KB in all. The three layers (far, mid, near) and the footer grass load with the home page. Toadstools grow as they scroll into view, and the leaves drift past. Everything stands still for people who ask for reduced motion, and in browsers that can&apos;t do scroll animation.
+        </p>
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {sceneNames.map((name) => {
+            const a = SCENE[name];
+            const wide = a.width >= 600;
+            return (
+              <li key={name} className={`overflow-hidden rounded-lg border border-stone ${wide ? "sm:col-span-2 lg:col-span-3" : ""}`}>
+                <div className="flex h-40 items-center justify-center p-3" style={{ background: `linear-gradient(${world.sky}, ${world.meadow})` }}>
+                  <Scene name={name} className="max-h-full w-auto max-w-full" eager />
+                </div>
+                <div className="bg-cream p-3 text-sm">
+                  <p className="font-medium text-forest">{name}</p>
+                  <p className="text-moss">{a.use}</p>
+                  <p className="text-moss">
+                    {a.width} x {a.height}, {(a.bytes / 1024).toFixed(1)} KB
+                  </p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       </Card>
 
       <Card title={`Art kit (${names.length} pieces, ${totalKb} KB in all)`} className="mb-6">

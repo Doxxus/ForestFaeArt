@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { PORTFOLIO_PAGE_SIZE, PORTFOLIO_SORTS, PORTFOLIO_SORT_LABELS, needsTidy, parsePortfolioParams, portfolioHref } from "@ffa/validators";
 import { CardGrid, EmptyArt, PageHeader, ProductCard } from "@/components/site/cards";
 import { Pagination } from "@/components/site/pagination";
+import { Panel } from "@/components/site/world";
 import { Button, Input, Select, buttonClass } from "@/components/ui";
 import { absoluteUrl } from "@/lib/seo";
 import { serverApi } from "@/lib/session";
@@ -48,7 +49,7 @@ export default async function PortfolioPage({ searchParams }: { searchParams: Se
   const hasFilters = Boolean(params.q || params.category || params.show !== "all" || params.sort !== "newest" || Object.keys(params.filters).length);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
+    <Panel size="6xl" sprout={{ kind: "cluster", at: "right" }}>
       <PageHeader title={category ? category.name : "Portfolio"} art={["morpho-butterfly", "morpho-butterfly"]}>
         {category?.description ? <p className="mx-auto mt-3 max-w-2xl text-lg text-moss">{category.description}</p> : null}
       </PageHeader>
@@ -158,6 +159,6 @@ export default async function PortfolioPage({ searchParams }: { searchParams: Se
       )}
 
       <Pagination page={result.page} pages={result.pages} hrefFor={(page) => portfolioHref(params, { page })} />
-    </div>
+    </Panel>
   );
 }

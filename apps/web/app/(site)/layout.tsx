@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { PreviewBanner, SiteFooter, SiteHeader } from "@/components/site/chrome";
 import { ComingSoon } from "@/components/site/coming-soon";
+import { World } from "@/components/site/world";
 import { ANALYTICS_TOKEN, SITE_URL, mayIndex } from "@/lib/site-config";
 import { absoluteUrl } from "@/lib/seo";
 import { getSite } from "@/lib/site";
@@ -29,13 +30,14 @@ export default async function SiteLayout({ children }: { children: ReactNode }) 
   const { settings, open, preview, user } = await getSite();
   if (!open) return <ComingSoon settings={settings} />;
   return (
-    <>
+    <div className="site-world">
+      <World />
       {preview ? <PreviewBanner /> : null}
       <SiteHeader settings={settings} />
       <main id="main">{children}</main>
       <SiteFooter settings={settings} />
       {/* Counts real visitors only: never staff, and never while the site is still hidden. */}
       {ANALYTICS_TOKEN && settings.siteLive && !user ? <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon={JSON.stringify({ token: ANALYTICS_TOKEN })} /> : null}
-    </>
+    </div>
   );
 }

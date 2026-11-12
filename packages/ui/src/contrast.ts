@@ -16,6 +16,13 @@ export function contrast(a: string, b: string): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
+/** The colour you see when `top` is laid over `under` at the given opacity (0 to 1). */
+export function blend(top: string, under: string, opacity: number): string {
+  const channels = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  const mixed = channels(top).map((v, i) => Math.round(v * opacity + channels(under)[i]! * (1 - opacity)));
+  return `#${mixed.map((v) => v.toString(16).padStart(2, "0")).join("")}`.toUpperCase();
+}
+
 /** AA needs 4.5:1 for normal text, 3:1 for large text (18 pt, or 14 pt bold) and for UI graphics. */
 export const AA_NORMAL = 4.5;
 export const AA_LARGE = 3;
