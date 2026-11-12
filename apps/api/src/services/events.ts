@@ -179,6 +179,7 @@ export interface EventSummary {
   imagePath: string | null;
   /** Pieces currently taken to the event. */
   productCount: number;
+  isSample: boolean;
 }
 
 export type EventWhen = "upcoming" | "past" | "all";
@@ -210,6 +211,7 @@ export async function listEvents(db: Db, opts: { when?: EventWhen; includeArchiv
     archived: e.archivedAt !== null,
     imagePath: e.imageKey ? mediaPath(e.imageKey) : null,
     productCount,
+    isSample: e.isSample,
   }));
 }
 
@@ -236,6 +238,7 @@ export async function getEvent(db: Db, idOrSlug: string) {
     notes: e.notes,
     status: e.status,
     archived: e.archivedAt !== null,
+    isSample: e.isSample,
     imagePath: e.imageKey ? mediaPath(e.imageKey) : null,
     updatedAt: e.updatedAt,
   };

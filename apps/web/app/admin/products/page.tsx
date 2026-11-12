@@ -78,7 +78,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
             </div>
           </div>
           <details open={Boolean(status || p.photos || p.etsy || p.category || p.labels || (p.sort && p.sort !== "newest"))}>
-            <summary className="mb-3 cursor-pointer font-medium text-forest">More filters and sorting</summary>
+            <summary className="mb-3 cursor-pointer py-2 font-medium text-forest">More filters and sorting</summary>
             <div className="grid gap-x-4 sm:grid-cols-2 lg:grid-cols-3">
               <Field label="Status" htmlFor="status">
                 <Select id="status" name="status" defaultValue={status ?? ""}>
@@ -168,6 +168,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
                     </div>
                     <div className="mt-1 flex flex-wrap gap-1.5">
                       <Badge tone={STATUS_TONE[item.status]}>{STATUS_LABELS[item.status]}</Badge>
+                      {item.isSample ? <Badge tone="warn">Sample</Badge> : null}
                       {item.imageCount === 0 ? <Badge tone="warn">Needs photos</Badge> : null}
                       {item.labelState === "STALE" ? <Badge tone="bad">Label out of date</Badge> : null}
                       {item.listedOnEtsy ? <Badge>On Etsy</Badge> : null}

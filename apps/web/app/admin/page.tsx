@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PRODUCT_STATUSES, SALE_CHANNEL_LABELS } from "@ffa/validators";
-import { Alert, Badge, Card, LinkButton, PageHeader } from "@/components/ui";
+import { Alert, Badge, Button, Card, Flash, LinkButton, PageHeader } from "@/components/ui";
 import { eventRange, STATUS_LABELS, money } from "@/lib/format";
 import { requireUser, serverApi } from "@/lib/session";
+import { dismissSetupAction } from "./actions";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -14,16 +15,17 @@ interface Item {
   action: string;
 }
 
-export default async function Dashboard({ searchParams }: { searchParams: Promise<{ denied?: string }> }) {
+export default async function Dashboard({ searchParams }: { searchParams: Promise<{ denied?: string; saved?: string; error?: string }> }) {
   const user = await requireUser();
-  const { denied } = await searchParams;
+  const { denied, saved, error } = await searchParams;
   const isAdmin = user.role === "ADMIN";
   const api = await serverApi();
-  const [summary, attention, upcoming, sales] = await Promise.all([
+  const [summary, attention, upcoming, sales, setup] = await Promise.all([
     api.inventory.summary.query(),
     api.site.attention.query(),
     api.events.list.query({ when: "upcoming", includeArchived: false }),
     isAdmin ? api.sales.summary.query({ breakdown: "month" }) : Promise.resolve(null),
+    isAdmin ? api.setup.get.query() : Promise.resolve(null),
   ]);
   const owner = isAdmin ? (summary as typeof summary & { totalValueCents: number; totalCostCents: number }) : null;
   const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
@@ -51,6 +53,33 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         ) : null}
       </PageHeader>
       {denied ? <Alert tone="error">That area is for the administrator.</Alert> : null}
+      <Flash saved={saved} error={error} />
+      {setup?.pending ? (
+        <Card title="Finish setting up your shop" className="mb-6">
+          <p className="mb-3 text-moss">
+            {setup.handled === 0
+              ? "A short walk through the basics, about ten minutes. You can leave at any time and carry on later."
+              : `You have done ${setup.handled} of ${setup.total} steps. Pick up where you left off.`}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <LinkButton href="/admin/setup">{setup.handled === 0 ? "Start setting up" : "Carry on"}</LinkButton>
+            <form action={dismissSetupAction}>
+              <Button type="submit" variant="ghost">
+                Not now
+              </Button>
+            </form>
+          </div>
+        </Card>
+      ) : null}
+      {setup?.samples.loaded ? (
+        <Alert tone="info">
+          Sample pieces and events are loaded, so the numbers below include them. They are marked Sample.{" "}
+          <Link href="/admin/settings" className="font-medium text-forest underline">
+            Remove them in Settings
+          </Link>{" "}
+          when you are ready.
+        </Alert>
+      ) : null}
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {PRODUCT_STATUSES.filter((s) => s !== "ARCHIVED").map((s) => (
@@ -61,7 +90,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         ))}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card title="Needs your attention">
           {items.length === 0 ? (
             <p className="text-moss">Nothing needs doing. Lovely.</p>
@@ -70,7 +99,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
               {items.map((i) => (
                 <li key={i.text} className="flex flex-wrap items-center justify-between gap-2 py-2">
                   <span className={i.tone === "error" ? "text-danger" : undefined}>{i.text}</span>
-                  <Link href={i.href} className="shrink-0 rounded-md px-2 py-1 font-medium text-forest underline">
+                  <Link href={i.href} className="inline-flex min-h-11 shrink-0 items-center rounded-md px-2 font-medium text-forest underline">
                     {i.action}
                   </Link>
                 </li>
@@ -86,7 +115,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             <ul className="divide-y divide-stone">
               {upcoming.slice(0, 4).map((e) => (
                 <li key={e.id} className="py-2">
-                  <Link href={`/admin/events/${e.slug}`} className="font-medium text-forest underline">
+                  <Link href={`/admin/events/${e.slug}`} className="inline-block py-2 font-medium text-forest underline">
                     {e.title}
                   </Link>{" "}
                   {e.status === "DRAFT" ? <Badge>Draft</Badge> : e.status === "CANCELLED" ? <Badge tone="bad">Cancelled</Badge> : null}

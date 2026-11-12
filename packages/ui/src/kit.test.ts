@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { ASSETS, buildAll } from "../scripts/kit/build";
+import { buildSamples, sampleModule } from "../scripts/kit/samples";
 
 const webDir = fileURLToPath(new URL("../../../apps/web/", import.meta.url));
 const read = (name: string) => readFileSync(`${webDir}public/kit/${name}.svg`, "utf8");
@@ -47,5 +48,27 @@ describe("the SVG kit (UX-9)", () => {
   it("names every asset once", () => {
     const names = ASSETS.map((a) => a.name);
     expect(new Set(names).size).toBe(names.length);
+  });
+});
+
+describe("the sample pictures (SAMP-4)", () => {
+  const file = fileURLToPath(new URL("../../../apps/api/src/media/sample-art.generated.ts", import.meta.url));
+
+  it("are up to date: the file the API serves matches what the drawing code produces now", () => {
+    expect(readFileSync(file, "utf8"), "sample-art.generated.ts is stale. Run: pnpm --filter @ffa/ui kit").toBe(sampleModule(buildSamples()));
+  }, 120_000);
+
+  it("are self-contained and small", () => {
+    for (const s of buildSamples()) {
+      for (const banned of ["<script", "<image", "<foreignObject", "xlink:href", "javascript:", " onload=", " onclick="]) {
+        expect(s.svg.includes(banned), `${s.name} contains ${banned}`).toBe(false);
+      }
+      expect(s.svg.replace('xmlns="http://www.w3.org/2000/svg"', "")).not.toMatch(/https?:\/\//);
+      expect(Buffer.byteLength(s.svg)).toBeLessThan(20_000);
+    }
+  });
+
+  it("says they are samples", () => {
+    for (const s of buildSamples()) expect(s.svg).toContain("SAMPLE PICTURE");
   });
 });

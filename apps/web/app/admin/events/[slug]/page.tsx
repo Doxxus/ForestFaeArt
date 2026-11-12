@@ -53,14 +53,16 @@ export default async function EventPage({
           {event.status === "PUBLISHED" ? "Published" : event.status === "CANCELLED" ? "Cancelled" : "Draft"}
         </Badge>
         {event.archived ? <Badge tone="bad">Archived</Badge> : null}
+        {event.isSample ? <Badge tone="warn">Sample</Badge> : null}
         <Link href="/admin/events" className={buttonClass("ghost")}>
           All events
         </Link>
       </PageHeader>
       <Flash saved={saved} error={error} />
+      {event.isSample ? <Alert tone="info">This is a sample event, here to show you how things look. You can remove all the sample data from Settings.</Alert> : null}
       {event.status === "DRAFT" ? <Alert tone="info">This event is a draft, so visitors can't see it yet. Change its status to Published when it's ready.</Alert> : null}
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_22rem]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-5">
           {isAdmin ? (
             <Card title="Details">
@@ -181,7 +183,7 @@ export default async function EventPage({
                       <form action={unassignPieceAction}>
                         {common}
                         <input type="hidden" name="productId" value={p.productId} />
-                        <Button type="submit" variant="ghost" className="min-h-10" aria-label={`Take ${p.title} off this event`}>
+                        <Button type="submit" variant="ghost" className="min-h-10" aria-label={`Take off ${p.title} from this event`}>
                           Take off
                         </Button>
                       </form>

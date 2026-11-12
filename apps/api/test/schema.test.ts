@@ -84,6 +84,27 @@ describe("database guards", () => {
     await expect(db.d1.prepare("UPDATE audit_log SET action = 'z'").run()).rejects.toThrow(/append-only/);
     await expect(db.d1.prepare("DELETE FROM audit_log").run()).rejects.toThrow(/append-only/);
   });
+  it("lets a sample product and its ledger rows be deleted, and nothing else (migration 0007)", async () => {
+    await insertProduct("P_SMP", "FFA-900020", "AVAILABLE", 1);
+    await db.d1.prepare("UPDATE product SET is_sample = 1 WHERE id = 'P_SMP'").run();
+    await db.d1
+      .prepare("INSERT INTO inventory_transaction (id, product_id, at, to_status, quantity_after, source) VALUES ('TX_SMP', 'P_SMP', 1, 'AVAILABLE', 1, 'SYSTEM')")
+      .run();
+    // The ledger itself stays append-only for sample pieces too: rows can go, but never be edited.
+    await expect(db.d1.prepare("UPDATE inventory_transaction SET notes = 'x' WHERE id = 'TX_SMP'").run()).rejects.toThrow(/append-only/);
+    await db.d1.prepare("DELETE FROM inventory_transaction WHERE id = 'TX_SMP'").run();
+    await db.d1.prepare("DELETE FROM product WHERE id = 'P_SMP'").run();
+    expect(await db.d1.prepare("SELECT COUNT(*) AS n FROM product WHERE id = 'P_SMP'").first<{ n: number }>()).toEqual({ n: 0 });
+  });
+  it("still refuses to delete a real product or its ledger rows once the sample exception exists", async () => {
+    await insertProduct("P_REAL", "FFA-900021", "AVAILABLE", 1);
+    await db.d1
+      .prepare("INSERT INTO inventory_transaction (id, product_id, at, to_status, quantity_after, source) VALUES ('TX_REAL', 'P_REAL', 1, 'AVAILABLE', 1, 'SYSTEM')")
+      .run();
+    await expect(db.d1.prepare("DELETE FROM inventory_transaction WHERE product_id = 'P_REAL'").run()).rejects.toThrow(/append-only/);
+    await expect(db.d1.prepare("DELETE FROM product WHERE id = 'P_REAL'").run()).rejects.toThrow(/archived/);
+    // Only the sample-data loader ever sets is_sample, and no screen or API call can flip it on an existing piece.
+  });
   it("allows only one primary image per product", async () => {
     await insertProduct("P_IMG", "FFA-900010", "AVAILABLE", 1);
     const ins = (id: string, key: string, primary: number) =>

@@ -52,7 +52,7 @@ export interface BuiltAsset {
 }
 
 /** The painted area of some artwork, found by rendering it. (Measuring shapes would count hatching that is clipped away.) */
-function paintedBounds(inner: string): { x: number; y: number; width: number; height: number } {
+export function paintedBounds(inner: string): { x: number; y: number; width: number; height: number } {
   const half = 900;
   const probe = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${-half} ${-half} ${half * 2} ${half * 2}" width="${half * 2}" height="${half * 2}">${inner}</svg>`;
   const image = new Resvg(probe).render();

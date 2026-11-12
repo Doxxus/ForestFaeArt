@@ -12,3 +12,4 @@ export * from "./settings";
 export * from "./portfolio";
 export * from "./labels";
 export * from "./sales";
+export * from "./setup";

@@ -1,22 +1,17 @@
 import type { Metadata } from "next";
 import { PAYMENT_METHODS, PAYMENT_METHOD_LABELS, STORE_MODES } from "@ffa/validators";
-import { Alert, Badge, Button, Card, Checkbox, Field, Flash, Input, PageHeader, Textarea } from "@/components/ui";
+import { Alert, Badge, Button, Card, Checkbox, Field, Flash, Input, LinkButton, PageHeader, Textarea } from "@/components/ui";
+import { STORE_MODE_INFO as MODES } from "@/lib/store-modes";
 import { requireUser, serverApi } from "@/lib/session";
-import { setSiteLiveAction, updateSettingsAction } from "./actions";
+import { loadSamplesAction, removeSamplesAction, restartSetupAction, setShowSamplesAction, setSiteLiveAction, updateSettingsAction } from "./actions";
 
 export const metadata: Metadata = { title: "Settings" };
-
-const MODES: Record<(typeof STORE_MODES)[number], { label: string; blurb: string }> = {
-  SHOWCASE_ONLY: { label: "Showcase only", blurb: "Visitors browse your portfolio. There are no buy buttons." },
-  EVENT_ONLY: { label: "Markets and events focus", blurb: "Like Showcase, but the home page promotes your upcoming markets." },
-  ONLINE_STORE: { label: "Online store", blurb: "Online buying is not available yet. Visitors will see an Inquire option instead." },
-};
 
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
   await requireUser({ admin: true });
   const { saved, error } = await searchParams;
   const api = await serverApi();
-  const [s, a] = await Promise.all([api.settings.get.query(), api.site.attention.query()]);
+  const [s, a, setup] = await Promise.all([api.settings.get.query(), api.site.attention.query(), api.setup.get.query()]);
   const checklist: { done: boolean; text: string; href: string }[] = [
     { done: a.draftPages.length === 0, text: a.draftPages.length ? `${a.draftPages.length} website ${a.draftPages.length === 1 ? "page has" : "pages have"} placeholder text` : "Website pages are written", href: "/admin/website" },
     { done: !a.sourcingPlaceholder, text: a.sourcingPlaceholder ? "The sourcing statement is still placeholder text" : "Sourcing statement is written", href: "#sourcingStatement" },
@@ -64,6 +59,65 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         )}
       </Card>
 
+      <div className="mb-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <Card title="Setup Wizard">
+          <p className="mb-3 text-moss">
+            A short walk through the seven basics: your details, your story, how the shop works, categories, a first piece, labels, and a first event.
+            {setup.progress.finishedAt ? " You have finished it, and you can run it again any time." : ` You have done ${setup.handled} of ${setup.total}.`}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {setup.handled > 0 && !setup.progress.finishedAt ? <LinkButton href="/admin/setup">Carry on where you left off</LinkButton> : null}
+            <form action={restartSetupAction}>
+              <Button type="submit" variant={setup.handled > 0 && !setup.progress.finishedAt ? "secondary" : "primary"}>
+                {setup.handled > 0 ? "Start the wizard again" : "Start the wizard"}
+              </Button>
+            </form>
+          </div>
+          <p className="mt-2 text-sm text-moss">Starting again only walks you through the steps. It doesn't change anything you already saved.</p>
+        </Card>
+
+        <Card title="Sample data">
+          <p className="mb-3 text-moss">
+            Four sample pieces and three sample events, so you can try everything out before your own are in. They are marked <Badge tone="warn">Sample</Badge> and are
+            never mixed up with your real ones.
+          </p>
+          {setup.samples.loaded ? (
+            <>
+              <p className="mb-3">
+                Loaded now: {setup.samples.products} sample {setup.samples.products === 1 ? "piece" : "pieces"} and {setup.samples.events} sample {setup.samples.events === 1 ? "event" : "events"}.
+              </p>
+              <form action={setShowSamplesAction} className="mb-4">
+                <Checkbox
+                  name="showSampleData"
+                  label="Show the samples on my website"
+                  hint="Off by default, so visitors never see them. Turn it on to preview how the website looks with pieces in it."
+                  defaultChecked={setup.showSampleData}
+                />
+                <Button type="submit" variant="secondary">
+                  Save
+                </Button>
+              </form>
+              <details className="rounded-lg border border-stone p-3">
+                <summary className="cursor-pointer py-2 font-medium text-forest">Remove the sample data</summary>
+                <p className="my-3">
+                  This removes every sample piece and event, and any practice sales made with only sample pieces. <strong>Your own pieces, events and sales are never touched.</strong>{" "}
+                  It can&apos;t be undone, but you can load the samples again afterwards.
+                </p>
+                <form action={removeSamplesAction}>
+                  <Button type="submit" variant="danger">
+                    Yes, remove the sample data
+                  </Button>
+                </form>
+              </details>
+            </>
+          ) : (
+            <form action={loadSamplesAction}>
+              <Button type="submit">Add the sample data</Button>
+            </form>
+          )}
+        </Card>
+      </div>
+
       <form action={updateSettingsAction} className="space-y-6">
         <Card title="How the shop works">
           <fieldset className="mb-4">
@@ -106,6 +160,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             </Field>
             <Field label="Email address shown to visitors" htmlFor="publicEmail" hint="Leave empty to show only the contact form.">
               <Input id="publicEmail" name="publicEmail" type="email" defaultValue={s.publicEmail} />
+            </Field>
+            <Field label="Phone number shown to visitors" htmlFor="businessPhone" hint="Optional. It appears on the contact page when filled in.">
+              <Input id="businessPhone" name="businessPhone" type="tel" defaultValue={s.businessPhone} maxLength={40} />
             </Field>
           </div>
         </Card>

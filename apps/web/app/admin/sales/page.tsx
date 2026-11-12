@@ -107,7 +107,7 @@ export default async function SalesPage({ searchParams }: { searchParams: Promis
       {list.rows.length === 0 ? (
         <p className="text-moss">{filtered ? "No sales match." : "No sales yet. They appear here as soon as one is recorded in the POS app."}</p>
       ) : (
-        <Table>
+        <Table label="Your sales">
           <thead>
             <tr>
               <Th>No.</Th>

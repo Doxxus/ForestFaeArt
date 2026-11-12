@@ -41,11 +41,12 @@ const PUBLIC_STATUS: Record<ProductRow["status"], PublicStatus | null> = {
 /** Null when the product must not appear on the public site. Visibility is independent of status (INV-4). */
 export function toPublicProduct(
   row: ProductRow,
-  settings: Pick<Settings, "showPrices" | "showProductsWithoutPhotos" | "showStockCounts" | "showEtsyLinks">,
+  settings: Pick<Settings, "showPrices" | "showProductsWithoutPhotos" | "showStockCounts" | "showEtsyLinks" | "showSampleData">,
   hasPhoto: boolean,
 ): PublicProduct | null {
   const status = PUBLIC_STATUS[row.status];
   if (!status || !row.portfolioVisible) return null;
+  if (row.isSample && !settings.showSampleData) return null;
   if (!hasPhoto && !settings.showProductsWithoutPhotos) return null;
   return {
     sku: row.sku,

@@ -70,14 +70,16 @@ export default async function ProductPage({
     <>
       <PageHeader title={product.title} intro={`${product.sku}${product.archivedAt ? " · archived" : ""}`}>
         <Badge tone={STATUS_TONE[product.status]}>{STATUS_LABELS[product.status]}</Badge>
+        {product.isSample ? <Badge tone="warn">Sample</Badge> : null}
         <Link href="/admin/products" className={buttonClass("ghost")}>
           All products
         </Link>
       </PageHeader>
       <Flash saved={saved} error={error} />
+      {product.isSample ? <Alert tone="info">This is a sample piece, here to show you how things look. You can remove all the sample data from Settings.</Alert> : null}
       {images.length === 0 ? <Alert tone="info">This piece has no photos yet, so it stays hidden from the website. Add some below.</Alert> : null}
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_22rem]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-5">
           {/* ---- photos ---- */}
           <Card title="Photos">
@@ -120,7 +122,7 @@ export default async function ProductPage({
                           {common}
                           <input type="hidden" name="imageId" value={img.id} />
                           <input type="hidden" name="direction" value="up" />
-                          <Button type="submit" variant="ghost" className="min-h-10" aria-label={`Move photo ${i + 1} earlier`}>
+                          <Button type="submit" variant="ghost" className="min-h-10" aria-label={`Move earlier: photo ${i + 1}`}>
                             Move earlier
                           </Button>
                         </form>
@@ -130,7 +132,7 @@ export default async function ProductPage({
                           {common}
                           <input type="hidden" name="imageId" value={img.id} />
                           <input type="hidden" name="direction" value="down" />
-                          <Button type="submit" variant="ghost" className="min-h-10" aria-label={`Move photo ${i + 1} later`}>
+                          <Button type="submit" variant="ghost" className="min-h-10" aria-label={`Move later: photo ${i + 1}`}>
                             Move later
                           </Button>
                         </form>
@@ -183,7 +185,7 @@ export default async function ProductPage({
                 <Input id="etsyUrl" name="etsyUrl" type="url" defaultValue={product.etsyUrl ?? ""} placeholder="https://" />
               </Field>
               <details className="mb-4 rounded-lg border border-stone p-3">
-                <summary className="cursor-pointer font-medium text-forest">More options (web address, size, weight)</summary>
+                <summary className="cursor-pointer py-2 font-medium text-forest">More options (web address, size, weight)</summary>
                 <div className="mt-3">
                   <Field label="Web address" htmlFor="slug" hint={`Used in links. Old links keep working if you change it. Shoppers scanning a label always arrive by SKU (${product.sku}).`}>
                     <Input id="slug" name="slug" defaultValue={product.slug} />
@@ -280,7 +282,7 @@ export default async function ProductPage({
             {nextStatuses.length ? (
               <form action={changeStatusAction} className="mb-6">
                 {common}
-                <Field label="Change status to" htmlFor="to">
+                <Field label="Change status to" htmlFor="to" hint="Available: ready to sell. Reserved: held for someone. Sold: gone. Draft: still being finished. Archived: put away, never deleted.">
                   <Select id="to" name="to" required defaultValue="">
                     <option value="" disabled>
                       Choose…
@@ -359,7 +361,7 @@ export default async function ProductPage({
       {/* ---- history ---- */}
       <section className="mt-8">
         <h2 className="mb-3 font-display text-2xl text-forest">History</h2>
-        <Table>
+        <Table label="This piece's history">
           <thead>
             <tr>
               <Th>When</Th>

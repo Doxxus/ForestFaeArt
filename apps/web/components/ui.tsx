@@ -41,7 +41,7 @@ export function PageHeader({ title, children, intro }: { title: string; intro?: 
 
 export function Card({ title, children, className }: { title?: string; children: ReactNode; className?: string }) {
   return (
-    <section className={cx("rounded-xl border border-stone bg-parchment p-4 sm:p-5", className)}>
+    <section className={cx("min-w-0 rounded-xl border border-stone bg-parchment p-4 sm:p-5", className)}>
       {title ? <h2 className="mb-3 font-display text-xl text-forest">{title}</h2> : null}
       {children}
     </section>
@@ -124,9 +124,10 @@ export function Checkbox({ label, hint, ...props }: ComponentProps<"input"> & { 
 
 // ---- tables ----
 
-export function Table({ children }: { children: ReactNode }) {
+export function Table({ children, label = "Table" }: { children: ReactNode; label?: string }) {
+  // A wide table scrolls sideways on a phone. Making it focusable lets keyboard users scroll it too.
   return (
-    <div className="overflow-x-auto rounded-xl border border-stone">
+    <div role="region" aria-label={label} tabIndex={0} className="relative overflow-x-auto rounded-xl border border-stone">
       <table className="w-full min-w-[32rem] border-collapse text-left">{children}</table>
     </div>
   );

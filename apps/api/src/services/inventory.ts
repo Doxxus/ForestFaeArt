@@ -209,6 +209,66 @@ export async function createProduct(
 }
 
 // ---------------------------------------------------------------------------
+// Sample pieces (Phase 7)
+// ---------------------------------------------------------------------------
+
+export interface SampleProductRow {
+  id: string;
+  sku: string;
+  slug: string;
+  title: string;
+  description: string;
+  priceCents: number;
+  costCents: number;
+  status: ProductStatus;
+  quantity: number;
+  reservedNote?: string;
+}
+
+/**
+ * The statements that create one sample piece and its first ledger row, to run inside the sample-data loader's single
+ * batch (SAMP-1). Kept here because this file is the only writer of `product.quantity` and `product.status`.
+ */
+export function sampleProductStatements(db: Db, actor: Actor, p: SampleProductRow): Batchable[] {
+  return [
+    db.insert(products).values({
+      id: p.id,
+      sku: p.sku,
+      slug: p.slug,
+      title: p.title,
+      description: p.description,
+      priceCents: p.priceCents,
+      costCents: p.costCents,
+      status: p.status,
+      quantity: p.quantity,
+      reservedNote: p.reservedNote ?? null,
+      isSample: true,
+    }),
+    db.insert(inventoryTransactions).values({
+      id: newId(),
+      productId: p.id,
+      userId: actor.id,
+      fromStatus: null,
+      toStatus: p.status,
+      quantityDelta: p.quantity,
+      quantityAfter: p.quantity,
+      notes: "Sample data",
+      source: actor.source,
+    }),
+  ];
+}
+
+/** Takes `count` SKU numbers in one query. Numbers are never reused, even if the sample data is later removed. */
+export async function allocateSkus(db: Db, count: number): Promise<string[]> {
+  const rows = await db.all<{ n: number }>(
+    sql`UPDATE counter SET next_value = next_value + ${count} WHERE key = 'sku' RETURNING next_value - ${count} AS n`,
+  );
+  const first = rows[0]?.n;
+  if (first === undefined) throw new Error("The sku counter is missing. Run the database migrations.");
+  return Array.from({ length: count }, (_, i) => formatSku(first + i));
+}
+
+// ---------------------------------------------------------------------------
 // Status change
 // ---------------------------------------------------------------------------
 

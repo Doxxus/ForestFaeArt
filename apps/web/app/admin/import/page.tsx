@@ -39,14 +39,16 @@ export default async function ImportPage() {
       {batches.length === 0 ? (
         <p className="text-moss">Nothing imported yet.</p>
       ) : (
-        <Table>
+        <Table label="Your imports">
           <thead>
             <tr>
               <Th>When</Th>
               <Th>File</Th>
               <Th>Added</Th>
               <Th>Problems</Th>
-              <Th>&nbsp;</Th>
+              <Th>
+                <span className="sr-only">Undo</span>
+              </Th>
             </tr>
           </thead>
           <tbody>

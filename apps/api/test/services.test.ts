@@ -122,7 +122,7 @@ const baseProduct = {
   updatedAt: new Date(0),
   archivedAt: null,
 } as ProductRow;
-const showing = { showPrices: true, showProductsWithoutPhotos: false, showStockCounts: false, showEtsyLinks: true };
+const showing = { showPrices: true, showProductsWithoutPhotos: false, showStockCounts: false, showEtsyLinks: true, showSampleData: false };
 
 describe("product projections", () => {
   it("ADMIN sees cost, STAFF never does", () => {
@@ -145,6 +145,11 @@ describe("product projections", () => {
     expect(toPublicProduct({ ...baseProduct, portfolioVisible: false }, showing, true)).toBeNull();
     expect(toPublicProduct(baseProduct, showing, false)).toBeNull();
     expect(toPublicProduct(baseProduct, { ...showing, showProductsWithoutPhotos: true }, false)).not.toBeNull();
+  });
+  it("hides sample pieces unless the owner chooses to show them (SAMP-3)", () => {
+    const sample = { ...baseProduct, isSample: true };
+    expect(toPublicProduct(sample, showing, true)).toBeNull();
+    expect(toPublicProduct(sample, { ...showing, showSampleData: true }, true)).not.toBeNull();
   });
   it("keeps SOLD items visible and never reveals a pending payment", () => {
     expect(toPublicProduct({ ...baseProduct, status: "SOLD", quantity: 0 }, showing, true)?.status).toBe("SOLD");

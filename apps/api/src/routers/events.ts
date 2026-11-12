@@ -53,8 +53,9 @@ const eventFields = {
   status: z.enum(EVENT_STATUSES),
 };
 
-async function siteIsVisible(ctx: Context) {
-  return (await loadSettings(ctx.db)).siteLive || (await optionalUser(ctx)) !== null;
+async function siteVisibility(ctx: Context) {
+  const settings = await loadSettings(ctx.db);
+  return { settings, visible: settings.siteLive || (await optionalUser(ctx)) !== null };
 }
 
 const mapUrl = (address: string, venue: string) => {
@@ -132,18 +133,20 @@ export const eventsRouter = router({
 
   // ---- public (only once the site is live, WEB-18) ----
   publicList: publicProcedure.input(z.object({ when: z.enum(["upcoming", "past"]).default("upcoming") }).default({ when: "upcoming" })).query(async ({ ctx, input }) => {
-    if (!(await siteIsVisible(ctx))) return [];
+    const { visible, settings } = await siteVisibility(ctx);
+    if (!visible) return [];
     const all = await listEvents(ctx.db, { when: input.when });
     return all
-      .filter((e) => e.status !== "DRAFT")
+      .filter((e) => e.status !== "DRAFT" && (!e.isSample || settings.showSampleData))
       .map((e) => ({ title: e.title, slug: e.slug, venue: e.venue, startsAt: e.startsAt, endsAt: e.endsAt, timezone: e.timezone, cancelled: e.status === "CANCELLED", imagePath: e.imagePath }));
   }),
 
   publicGet: publicProcedure.input(z.object({ slug: z.string().trim().min(1).max(100) })).query(async ({ ctx, input }) => {
     const notFound = new TRPCError({ code: "NOT_FOUND", message: "We couldn't find that event." });
-    if (!(await siteIsVisible(ctx))) throw notFound;
+    const { visible, settings } = await siteVisibility(ctx);
+    if (!visible) throw notFound;
     const e = await getEvent(ctx.db, input.slug);
-    if (!e || e.archived || e.status === "DRAFT") throw notFound;
+    if (!e || e.archived || e.status === "DRAFT" || (e.isSample && !settings.showSampleData)) throw notFound;
     return {
       title: e.title,
       slug: e.slug,

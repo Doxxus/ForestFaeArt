@@ -8,10 +8,12 @@ import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "nod
 import { fileURLToPath } from "node:url";
 import { Resvg } from "@resvg/resvg-js";
 import { ASSETS, buildAll } from "./build";
+import { buildSamples, sampleModule } from "./samples";
 import { ogImageSvg, touchIconSvg } from "./social";
 import { colors } from "./toolkit";
 
 const webDir = fileURLToPath(new URL("../../../../apps/web/", import.meta.url));
+const apiMediaDir = fileURLToPath(new URL("../../../../apps/api/src/media/", import.meta.url));
 const outDir = `${webDir}public/kit/`;
 const previewDir = fileURLToPath(new URL("../../.tmp/kit-preview/", import.meta.url));
 
@@ -29,6 +31,11 @@ const manifest =
   `export type KitName = keyof typeof KIT;\n`;
 writeFileSync(`${webDir}lib/kit-manifest.ts`, manifest);
 for (const b of built) console.log(`${b.name.padEnd(22)} ${String(b.svg.length).padStart(6)} bytes  ${b.width}x${b.height}`);
+
+// The four pictures for the sample pieces (SAMP-4), compiled into the API so no storage is needed.
+const samples = buildSamples();
+writeFileSync(`${apiMediaDir}sample-art.generated.ts`, sampleModule(samples));
+for (const s of samples) console.log(`sample ${s.name.padEnd(15)} ${String(s.svg.length).padStart(6)} bytes`);
 
 // Favicon (the approved small mark, ADR 005), touch icon and the default link-preview picture.
 const favicon = readFileSync(fileURLToPath(new URL("../../brand/logo-directions/C-minimal-mark-icon-colour.svg", import.meta.url)), "utf8");

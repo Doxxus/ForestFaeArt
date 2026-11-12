@@ -38,7 +38,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
       ) : null}
 
       <Card title="All designs">
-        <Table>
+        <Table label="Label layouts">
           <thead>
             <tr>
               <Th>Name</Th>

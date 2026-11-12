@@ -10,6 +10,7 @@ import { labelsRouter } from "./routers/labels";
 import { productsRouter } from "./routers/products";
 import { customersRouter, posRouter, salesRouter } from "./routers/sales";
 import { settingsRouter } from "./routers/settings";
+import { setupRouter } from "./routers/setup";
 import { categoriesRouter, metadataRouter } from "./routers/taxonomy";
 import { usersRouter } from "./routers/users";
 import { publicProcedure, router } from "./trpc";
@@ -36,6 +37,7 @@ export const appRouter = router({
   sales: salesRouter,
   customers: customersRouter,
   pos: posRouter,
+  setup: setupRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -39,6 +39,14 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
                 </a>
               </li>
             ) : null}
+            {settings.businessPhone ? (
+              <li>
+                <span className="text-moss">Phone: </span>
+                <a href={`tel:${settings.businessPhone.replace(/[^\d+]/g, "")}`} className="font-medium text-forest underline underline-offset-4">
+                  {settings.businessPhone}
+                </a>
+              </li>
+            ) : null}
             {links.map((l) => (
               <li key={l.href}>
                 <a href={l.href} rel="noopener" className="font-medium text-forest underline underline-offset-4">

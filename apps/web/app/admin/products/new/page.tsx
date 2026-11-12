@@ -14,7 +14,7 @@ export default async function NewProductPage({ searchParams }: { searchParams: P
       <Card className="max-w-xl">
         <Flash error={error} />
         <form action={createProductAction}>
-          <Field label="Title" htmlFor="title">
+          <Field label="Title" htmlFor="title" hint="What you would call it at a market. You can change it later, and any printed label will be flagged for reprinting.">
             <Input id="title" name="title" required maxLength={200} autoFocus placeholder="For example, Luna moth in a walnut frame" />
           </Field>
           <Field label="Price (CAD)" htmlFor="price" hint="No tax is added. This is the final price.">

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { PAYMENT_METHODS, STORE_MODES } from "./enums";
+import { emptySetupProgress, setupProgressSchema } from "./setup";
 
 const emailish = z.string().trim().max(254).refine((v) => v === "" || z.string().email().safeParse(v).success, {
   message: "Enter a valid email address",
@@ -36,6 +37,12 @@ export const SETTINGS = {
   instagramUrl: def({ schema: urlish, default: "https://www.instagram.com/forestfaefolkart", public: true }),
   etsyUrl: def({ schema: urlish, default: "https://forestfaefolkart.etsy.com", public: true }),
   facebookUrl: def({ schema: urlish, default: "", public: true }),
+  /** Shown on the contact page when it is filled in. */
+  businessPhone: def({ schema: text(40), default: "", public: true }),
+  /** Sample pieces and events are always hidden from the public site unless the owner turns this on (SAMP-3). */
+  showSampleData: def({ schema: z.boolean(), default: false, public: false }),
+  /** How far the Setup Wizard has got (SET-1). Kept so it can be left and resumed. */
+  setupProgress: def({ schema: setupProgressSchema, default: emptySetupProgress(), public: false }),
   /** Shown on the contact page and in the footer. Separate from the private inbox that inquiries arrive at. */
   publicEmail: def({ schema: emailish, default: "asa@forestfae.ca", public: true }),
   inquiryEmail: def({ schema: emailish, default: "asa@forestfae.ca", public: false }),

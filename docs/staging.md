@@ -48,7 +48,7 @@ The local database lives in `apps/api/.wrangler` (git-ignored) and never touches
 
 ## Database state
 
-Staging has migrations `0000` to `0006` applied (`0006` on 4 Nov 2026): the full data model, the append-only triggers, the reference data (8 categories, 9 metadata fields, the `sku` and `sale` counters), placeholder website content, the inquiry delivery-error columns, and the sale discount-reason and undo columns. The first ADMIN exists. Further users are invited from the admin app (`users.invite` returns a set-password link, `WEB_ORIGIN` builds it).
+Staging has migrations `0000` to `0007` applied (`0006` on 4 Nov 2026, `0007` on 12 Nov): the full data model, the append-only triggers (changed in `0007` so that only rows belonging to sample pieces can be deleted, see [ADR 015](./adr/015-setup-wizard-samples-help.md)), the reference data (8 categories, 9 metadata fields, the `sku` and `sale` counters), placeholder website content, the inquiry delivery-error columns, and the sale discount-reason and undo columns. The first ADMIN exists. Further users are invited from the admin app (`users.invite` returns a set-password link, `WEB_ORIGIN` builds it).
 
 API tests (`pnpm test` in `apps/api`) run against a throwaway local D1 with every migration applied. They never touch staging.
 
@@ -118,6 +118,18 @@ The app is in `apps/pos` ([ADR 014](./adr/014-sales-and-pos.md)). It uses no cus
 6. **Print a label** in the app opens the web print screen in Chrome. Sign in to the admin in Chrome on that phone once, and printing works as in [Labels and the B1 printer](#labels-and-the-b1-printer).
 
 **Making an installable APK** (for the owner's and staff phones at handover, HAND-4): `pnpm dlx eas-cli login`, then in `apps/pos` run `pnpm dlx eas-cli build --platform android --profile preview` (staging) or `--profile production`. EAS gives a private link to the APK. The production profile points at `https://api.forestfae.ca`, which is a placeholder until the production domain exists (Phase 8). `pnpm bundle:check` checks the app still bundles.
+
+## The Setup Wizard, sample data and help
+
+([ADR 015](./adr/015-setup-wizard-samples-help.md).)
+
+- **The wizard** is at `/admin/setup` (administrator only). A card on the dashboard offers it until it is finished or "Not now" is pressed. Settings has *Carry on where you left off* and *Start the wizard again*. Before handover the developer walks through it, so it shows as finished; **to show the owner the wizard on handover day, press *Start the wizard again* in Settings.** Starting again doesn't change anything already saved.
+- **Sample data** (four pieces, three events) is added and removed in **Settings, Sample data** or from wizard step 5. It is marked **Sample** everywhere in the admin, and hidden from visitors unless *Show the samples on my website* is ticked. **Remove it before the website is published**, unless the aim is a preview. Removing deletes the samples, their pictures, any practice sales made with only sample pieces, and nothing else. If a sample piece was sold in a sale with a real piece, it stays and the message says which sale.
+- **Handover test sale (HAND-4):** a sample piece is a good one to use, because removing the samples later takes the practice sale with it. Use a *real* piece only if the sale should stay in the books.
+- **SKUs are never reused.** Loading the samples uses up four numbers, so the first real piece after a load and removal won't be `FFA-000001`. If the first real piece must be number 1, load no samples on the production database (or reset the counter by hand before any real piece exists).
+- **The pictures** are drawn in code. After changing the kit, run `pnpm --filter @ffa/ui kit` and commit `apps/api/src/media/sample-art.generated.ts` with the rest. A test fails if it is stale.
+- **Help text** for each admin page is in `apps/web/lib/help.ts`. A test fails if a new admin page has none.
+- **Cloudflare's free plan allows 50 database queries per request.** The sample loader and remover are written to stay well under that (about 8 queries each, plus one batch).
 
 ## Not set up yet
 

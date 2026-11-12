@@ -56,6 +56,7 @@ export default async function EventsPage({ searchParams }: { searchParams: Promi
                       {e.status === "PUBLISHED" ? "Published" : e.status === "CANCELLED" ? "Cancelled" : "Draft"}
                     </Badge>
                     {e.productCount ? <Badge>{e.productCount} {e.productCount === 1 ? "piece" : "pieces"} there</Badge> : null}
+                    {e.isSample ? <Badge tone="warn">Sample</Badge> : null}
                   </div>
                 </div>
               </Link>

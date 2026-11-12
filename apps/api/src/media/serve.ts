@@ -2,6 +2,7 @@
 
 import type { Env } from "../env";
 import { IMMUTABLE_CACHE } from "../services/images";
+import { SAMPLE_ART } from "./sample-art.generated";
 
 /** Only these widths are offered, so a caller cannot create endless unique (billable) transformations. */
 export const VARIANT_WIDTHS = [320, 640, 960, 1280, 1920] as const;
@@ -35,9 +36,30 @@ const baseHeaders = (contentType: string, etag?: string) => {
   return h;
 };
 
+const SAMPLE_KEY = /^samples\/([a-z-]+)(?:__[a-z0-9]+)?\.svg$/;
+
+/** The sample pieces' pictures live in the code, not in storage. They are drawings, so a resized copy is the same file. */
+function serveSample(req: Request, key: string): Response | null {
+  const name = SAMPLE_KEY.exec(key)?.[1];
+  const art = name ? SAMPLE_ART[name] : undefined;
+  if (!art) return null;
+  return new Response(req.method === "HEAD" ? null : art.svg, {
+    headers: {
+      "content-type": "image/svg+xml; charset=utf-8",
+      "cache-control": "public, max-age=86400",
+      "x-content-type-options": "nosniff",
+      "cross-origin-resource-policy": "cross-origin",
+      // Opened on its own, the drawing can't run anything.
+      "content-security-policy": "default-src 'none'; style-src 'unsafe-inline'; sandbox",
+    },
+  });
+}
+
 export async function serveMedia(env: Env, req: Request, url: URL): Promise<Response> {
   if (req.method !== "GET" && req.method !== "HEAD") return new Response("Method not allowed", { status: 405 });
   const key = decodeURIComponent(url.pathname.slice("/media/".length));
+  const sample = serveSample(req, key);
+  if (sample) return sample;
   if (!KEY.test(key)) return new Response("Not found", { status: 404 });
 
   const rawWidth = url.searchParams.get("w");

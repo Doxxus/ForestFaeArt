@@ -19,10 +19,10 @@ export default async function NewEventPage({ searchParams }: { searchParams: Pro
             <Input id="title" name="title" required maxLength={200} autoFocus placeholder="For example, Stratford Winter Market" />
           </Field>
           <div className="grid gap-x-4 sm:grid-cols-2">
-            <Field label="Starts" htmlFor="startsAt">
+            <Field label="Starts" htmlFor="startsAt" hint="The first day and the opening time.">
               <Input id="startsAt" name="startsAt" type="datetime-local" required />
             </Field>
-            <Field label="Ends" htmlFor="endsAt">
+            <Field label="Ends" htmlFor="endsAt" hint="The last day and the closing time.">
               <Input id="endsAt" name="endsAt" type="datetime-local" required />
             </Field>
           </div>

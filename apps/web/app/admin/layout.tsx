@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { HelpDrawer } from "@/components/help-drawer";
 import { requireUser } from "@/lib/session";
 import { signOutAction } from "./actions";
 
@@ -27,7 +28,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     <div className="min-h-screen">
       <header className="border-b border-stone bg-forest text-cream">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
-          <Link href="/admin" className="font-display text-xl text-champagne">
+          <Link href="/admin" className="inline-block py-2 font-display text-xl text-champagne">
             Forest Fae Folk Art
           </Link>
           {/* A details menu on small screens needs no JavaScript. */}
@@ -42,6 +43,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             <span className="hidden text-sm text-champagne sm:inline">
               {user.name} ({user.role === "ADMIN" ? "Administrator" : "Staff"})
             </span>
+            <HelpDrawer />
             <form action={signOutAction}>
               <button type="submit" className="min-h-10 rounded-lg px-3 text-cream hover:bg-moss">
                 Sign out

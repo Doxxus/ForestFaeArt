@@ -37,9 +37,9 @@ export default async function SalePage({ params, searchParams }: { params: Promi
         </div>
       ) : null}
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card title="What was sold" className="lg:col-span-2">
-          <Table>
+          <Table label="What was sold">
             <thead>
               <tr>
                 <Th>Piece</Th>
@@ -109,7 +109,7 @@ export default async function SalePage({ params, searchParams }: { params: Promi
       </div>
 
       {!voided ? (
-        <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
           <Card title="Email a receipt">
             <form action={sendReceiptAction}>
               <input type="hidden" name="id" value={sale.id} />
@@ -123,7 +123,7 @@ export default async function SalePage({ params, searchParams }: { params: Promi
           </Card>
           <Card title="Undo this sale">
             <details>
-              <summary className="cursor-pointer text-danger underline">I need to undo this sale</summary>
+              <summary className="cursor-pointer py-3 text-danger underline">I need to undo this sale</summary>
               <form action={voidSaleAction} className="mt-3">
                 <input type="hidden" name="id" value={sale.id} />
                 <p className="mb-3 text-sm">The pieces go back into stock. Undoing a sale can&apos;t be undone, but you can sell the pieces again.</p>

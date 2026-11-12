@@ -38,7 +38,7 @@ export default async function EditPagePage({ params, searchParams }: { params: P
       <Flash saved={saved} error={error} />
       {page.placeholder ? <Alert tone="info">This still has placeholder text (it reads like “Lorem ipsum”). Replace it with your own words.</Alert> : null}
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_20rem]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_20rem]">
         <Card>
           <form action={updateContentAction}>
             <input type="hidden" name="key" value={k} />

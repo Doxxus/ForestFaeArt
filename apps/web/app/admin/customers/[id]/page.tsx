@@ -31,7 +31,7 @@ export default async function CustomerPage({ params, searchParams }: { params: P
       </PageHeader>
       <Flash saved={saved} error={error} />
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <div className="space-y-5 lg:col-span-2">
           <Card title="Purchases">
             <p className="mb-3">
@@ -40,7 +40,7 @@ export default async function CustomerPage({ params, searchParams }: { params: P
             {sales.length === 0 ? (
               <p className="text-moss">No purchases yet.</p>
             ) : (
-              <Table>
+              <Table label="Their purchases">
                 <thead>
                   <tr>
                     <Th>No.</Th>
@@ -103,7 +103,7 @@ export default async function CustomerPage({ params, searchParams }: { params: P
               </Card>
               <Card title="Remove their details">
                 <details>
-                  <summary className="cursor-pointer text-danger underline">They asked me to delete their information</summary>
+                  <summary className="cursor-pointer py-3 text-danger underline">They asked me to delete their information</summary>
                   <form action={anonymizeCustomerAction} className="mt-3">
                     <input type="hidden" name="id" value={c.id} />
                     <p className="mb-3 text-sm">Their name, email, phone and notes are erased for good. Their sales stay in your records, without a name. This can&apos;t be undone.</p>

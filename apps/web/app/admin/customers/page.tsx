@@ -45,7 +45,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: Pr
       {list.rows.length === 0 ? (
         <Alert>{q ? "Nobody matches that search." : "No customers yet. They are added here, or when you record a sale in the POS app."}</Alert>
       ) : (
-        <Table>
+        <Table label="Your customers">
           <thead>
             <tr>
               <Th>Name</Th>
