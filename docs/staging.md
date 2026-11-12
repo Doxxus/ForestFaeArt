@@ -32,6 +32,7 @@ Run these from `apps/api` unless noted.
 | Apply migrations locally | `pnpm db:migrate:local` |
 | Apply migrations to staging | `pnpm db:migrate:staging` |
 | Deploy the API to staging | `pnpm deploy:staging` |
+| Deploy to production | `pnpm db:migrate:production`, then `pnpm deploy:production` in `apps/api`, then `pnpm deploy:production` in `apps/web`. See the [runbook](./runbook.md#deploy-and-roll-back) |
 | Create a user (local or staging) | see the header of `scripts/create-user.ts`. The password comes from an environment variable and only its hash is written |
 | Deploy the web app to staging | `pnpm deploy:staging` in `apps/web` |
 | Change the staging secret | `wrangler secret put SESSION_SECRET --env staging` (this signs everyone out) |
@@ -134,7 +135,6 @@ The app is in `apps/pos` ([ADR 014](./adr/014-sales-and-pos.md)). It uses no cus
 
 ## Not set up yet
 
-- A staging custom domain such as `staging.forestfae.ca` (waits for the zone build-out).
-- Access control in front of staging (Cloudflare Access) once the custom domain exists.
-- A production environment. It is created at cut-over in Phase 8.
-- Error reporting, uptime checks and D1 backups (Phase 8).
+- A staging custom domain such as `staging.forestfae.ca`, and access control in front of staging (Cloudflare Access). Staging stays on `workers.dev`.
+- Production is **live** (https://forestfae.ca, https://api.forestfae.ca, [ADR 016](./adr/016-production-security-backups.md)). Its remaining set-up steps are in [handover.md](./handover.md).
+- Staging now also runs the nightly backup and the 15-minute check (to `ffa-staging-backups`), with no `ALERT_EMAIL`, so it only logs. Its Settings page shows the backup status and "Back up now".

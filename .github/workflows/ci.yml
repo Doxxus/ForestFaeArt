@@ -16,6 +16,8 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Fails the build on a high or critical advisory (ADR 016). Lower ones are reviewed with the weekly dependency updates.
+      - run: pnpm audit --audit-level high
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test

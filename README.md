@@ -26,4 +26,5 @@ pnpm build
 - `packages/label-engine`: QR and label rendering, templates and layouts, A4 sheet planning and PDF output. See [ADR 004](./docs/adr/004-label-rendering.md), [ADR 013](./docs/adr/013-label-printing.md) and [docs/label-print-test.md](./docs/label-print-test.md)
 - `packages/ui`: brand kit and design tokens: logo directions, the SVG art kit and the public site's woodland scenery (`pnpm --filter @ffa/ui kit` redraws them into `apps/web/public/kit` and `apps/web/public/scene`, and also the four sample-piece pictures into `apps/api/src/media/sample-art.generated.ts`, see [ADR 011](./docs/adr/011-public-site.md), [ADR 012](./docs/adr/012-public-site-redesign.md) and [ADR 015](./docs/adr/015-setup-wizard-samples-help.md))
 - `docs/adr`: architecture decision records
+- [docs/runbook.md](./docs/runbook.md) (deploy, roll back, restore from backups, rotate secrets, accounts and costs, Stage 2) and [docs/handover.md](./docs/handover.md) (the plan for handover day). Production is live at `forestfae.ca` behind "Coming soon", see [ADR 016](./docs/adr/016-production-security-backups.md)
 - `spikes/`: throwaway experiments, not part of the workspace

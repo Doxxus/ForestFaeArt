@@ -195,8 +195,20 @@ const ROUTES: Route[] = [
       title: "Settings",
       about: "How your shop and website behave.",
       steps: ["Press Publish my website when you are ready for visitors to see it. Until then they see a Coming soon page.", "Change your business name, links and email addresses.", "Choose which payment methods the POS app offers."],
-      tips: ["Sample data and the Setup Wizard are here too.", "Press Save settings at the bottom after changing the other sections."],
+      tips: ["Sample data and the Setup Wizard are here too.", "“Your data and backups” shows your nightly backup and lets you download all your records.", "Press Save settings at the bottom after changing the other sections."],
     },
+  },
+  {
+    match: /^\/admin\/guide\/staff\/?$/,
+    topic: { title: "Quick start for staff", about: "One page on how to sell with the POS app.", steps: ["Press Print this page to keep a copy by the till."], tips: ["Give this to anyone who helps you at a market."] },
+  },
+  {
+    match: /^\/admin\/guide\/market-day\/?$/,
+    topic: { title: "Market day checklist", about: "Things to do before, during and after a market.", steps: ["Press Print this page, then tick things off with a pen."] },
+  },
+  {
+    match: /^\/admin\/guide\/?$/,
+    topic: { title: "Owner Guide", about: "How to run your shop and website, in plain words.", steps: ["Pick a part from the list at the top.", "Press Print the whole guide if you would like it on paper."], tips: ["The “?” button on each page explains that page as well."] },
   },
   {
     match: /^\/admin\/style-guide\/?$/,

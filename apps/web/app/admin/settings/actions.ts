@@ -81,3 +81,11 @@ export async function restartSetupAction() {
   if (!result.ok) back(here, result);
   redirect("/admin/setup");
 }
+
+export async function backupNowAction() {
+  await requireUser({ admin: true });
+  const result = await settle(async () => (await serverApi()).data.backupNow.mutate());
+  if (!result.ok) back(here, result);
+  if (result.ok && !result.value.ok) back(here, { ok: false, message: "The backup didn't work. Please tell your developer." });
+  back(here, { ok: true }, "Backed up just now.");
+}

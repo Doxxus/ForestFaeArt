@@ -2,6 +2,7 @@ import { TRPCError, initTRPC } from "@trpc/server";
 import { authorize, verifySessionToken, ROLES, type Role, type SessionClaims } from "@ffa/auth";
 import type { Env } from "./env";
 import { emailProviderFor, type EmailProvider } from "./email/provider";
+import { referenceFor } from "./security";
 import { loadUserRecord, makeDb, type Db } from "./store";
 import { verifyTurnstile } from "./turnstile";
 
@@ -56,7 +57,15 @@ export function createContext(env: Env, req: Request, overrides: Partial<Pick<Co
 }
 
 // isDev: false keeps stack traces out of responses. tRPC otherwise decides from NODE_ENV, which Workers don't set.
-const t = initTRPC.context<Context>().create({ isDev: false });
+// An unexpected failure gets a short reference (ADR 016): the person sees it, and the same code is in the log line.
+const t = initTRPC.context<Context>().create({
+  isDev: false,
+  errorFormatter({ shape, error }) {
+    if (error.code !== "INTERNAL_SERVER_ERROR") return { ...shape, data: { ...shape.data, reference: undefined } };
+    // The real message (a database error, say) goes in the log under this reference, never to the caller.
+    return { ...shape, message: "Something went wrong on our side.", data: { ...shape.data, reference: referenceFor(error) } };
+  },
+});
 
 export const router = t.router;
 export const publicProcedure = t.procedure;

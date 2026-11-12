@@ -1,6 +1,7 @@
 import { authRouter } from "./routers/auth";
 import { catalogRouter } from "./routers/catalog";
 import { contentRouter, siteRouter } from "./routers/content";
+import { dataRouter } from "./routers/data";
 import { eventsRouter } from "./routers/events";
 import { imagesRouter } from "./routers/images";
 import { inquiriesRouter } from "./routers/inquiries";
@@ -38,6 +39,7 @@ export const appRouter = router({
   customers: customersRouter,
   pos: posRouter,
   setup: setupRouter,
+  data: dataRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -3,11 +3,15 @@
   "name": "ffa-api",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-30",
-  "compatibility_flags": ["nodejs_compat"],
+  // global_fetch_strictly_public lets the monitor call the website's workers.dev address (otherwise Cloudflare refuses, error 1042).
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "observability": { "enabled": true },
   "images": { "binding": "IMAGES" },
   "vars": { "ENVIRONMENT": "local", "WEB_ORIGIN": "http://localhost:3000" },
-  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "ffa-staging-media" }],
+  "r2_buckets": [
+    { "binding": "MEDIA", "bucket_name": "ffa-staging-media" },
+    { "binding": "BACKUPS", "bucket_name": "ffa-staging-backups" }
+  ],
   "d1_databases": [
     {
       "binding": "DB",
@@ -21,7 +25,10 @@
       "name": "ffa-api-staging",
       "images": { "binding": "IMAGES" },
       "vars": { "ENVIRONMENT": "staging", "WEB_ORIGIN": "https://ffa-web-staging.forestfaefolk.workers.dev" },
-      "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "ffa-staging-media" }],
+      "r2_buckets": [
+        { "binding": "MEDIA", "bucket_name": "ffa-staging-media" },
+        { "binding": "BACKUPS", "bucket_name": "ffa-staging-backups" }
+      ],
       "d1_databases": [
         {
           "binding": "DB",
@@ -29,7 +36,30 @@
           "database_id": "8669cdae-fe0c-4f3b-aca1-b0ffb443068b",
           "migrations_dir": "../../packages/db/migrations"
         }
-      ]
+      ],
+      // Nightly backup (07:17 UTC, 02:17 in Toronto) and the 15-minute health check. See ADR 016.
+      "triggers": { "crons": ["17 7 * * *", "*/15 * * * *"] }
+    },
+    "production": {
+      "name": "ffa-api",
+      "images": { "binding": "IMAGES" },
+      "vars": { "ENVIRONMENT": "production", "WEB_ORIGIN": "https://forestfae.ca" },
+      "routes": [{ "pattern": "api.forestfae.ca", "custom_domain": true }],
+      // Production answers only on its own domain.
+      "workers_dev": false,
+      "r2_buckets": [
+        { "binding": "MEDIA", "bucket_name": "ffa-prod-media" },
+        { "binding": "BACKUPS", "bucket_name": "ffa-prod-backups" }
+      ],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "ffa-prod",
+          "database_id": "c45a810b-2234-440d-8f15-f9e6722b1371",
+          "migrations_dir": "../../packages/db/migrations"
+        }
+      ],
+      "triggers": { "crons": ["17 7 * * *", "*/15 * * * *"] }
     }
   }
 }

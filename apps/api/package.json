@@ -14,8 +14,11 @@
     "dev": "wrangler dev",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "db:migrate:staging": "wrangler d1 migrations apply DB --env staging --remote",
+    "db:migrate:production": "wrangler d1 migrations apply DB --env production --remote",
     "deploy:staging": "wrangler deploy --env staging",
-    "create-user": "tsx scripts/create-user.ts"
+    "deploy:production": "wrangler deploy --env production",
+    "create-user": "tsx scripts/create-user.ts",
+    "restore-backup": "tsx scripts/restore-backup.ts"
   },
   "dependencies": {
     "@ffa/auth": "workspace:*",

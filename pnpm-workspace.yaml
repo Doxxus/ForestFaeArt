@@ -4,6 +4,9 @@ packages:
 allowBuilds:
   esbuild: true
   workerd: true
+# Security fixes for the dev server, which vitest and vinext pull in with their own copies of vite (pnpm audit, ADR 016).
+overrides:
+  vite: 8.3.8
 minimumReleaseAgeExclude:
   - "@expo/cli@58.1.18"
   - "@expo/config@58.0.10"

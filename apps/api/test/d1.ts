@@ -28,12 +28,14 @@ export function splitStatements(sqlText: string): string[] {
 export interface TestDb {
   d1: D1Database;
   r2: R2Bucket;
+  /** The backup bucket (ADR 016). */
+  backups: R2Bucket;
   dispose(): Promise<void>;
 }
 
 /** A fresh in-memory D1 (real workerd/SQLite semantics, nothing persisted) with every migration applied. */
 export async function createTestDb(): Promise<TestDb> {
-  const proxy = await getPlatformProxy<{ DB: D1Database; MEDIA: R2Bucket }>({ configPath: WRANGLER_CONFIG, persist: false });
+  const proxy = await getPlatformProxy<{ DB: D1Database; MEDIA: R2Bucket; BACKUPS: R2Bucket }>({ configPath: WRANGLER_CONFIG, persist: false });
   const d1 = proxy.env.DB;
   const files = readdirSync(MIGRATIONS).filter((f) => f.endsWith(".sql")).sort();
   for (const file of files) {
@@ -41,5 +43,5 @@ export async function createTestDb(): Promise<TestDb> {
       await d1.prepare(statement).run();
     }
   }
-  return { d1, r2: proxy.env.MEDIA, dispose: () => proxy.dispose() };
+  return { d1, r2: proxy.env.MEDIA, backups: proxy.env.BACKUPS, dispose: () => proxy.dispose() };
 }

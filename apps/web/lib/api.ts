@@ -30,7 +30,10 @@ export function friendlyError(e: unknown): string {
   if (isApiError(e)) {
     const code = errorCode(e);
     if (code === "BAD_REQUEST" && e.message.startsWith("[")) return "Please check the highlighted fields and try again.";
-    if (code === "INTERNAL_SERVER_ERROR") return "Something went wrong on our side. Please try again.";
+    if (code === "INTERNAL_SERVER_ERROR") {
+      const reference = (e.data as { reference?: string } | undefined)?.reference;
+      return `Something went wrong on our side. Please try again.${reference ? ` If it keeps happening, tell us this code: ${reference}.` : ""}`;
+    }
     return e.message;
   }
   return "We couldn't reach the server. Please check your connection and try again.";

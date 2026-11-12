@@ -15,4 +15,8 @@ export interface Env {
   TURNSTILE_SECRET?: string;
   /** Cloudflare Images binding for resized photos. Optional: without it the original is served. */
   IMAGES?: ImagesBinding;
+  /** A second R2 bucket for backups (ADR 016). Without it the backup and monitor jobs only log. */
+  BACKUPS?: R2Bucket;
+  /** Where problem alerts are emailed. A secret, so no personal address is in the repository. Set with `wrangler secret put ALERT_EMAIL`. */
+  ALERT_EMAIL?: string;
 }

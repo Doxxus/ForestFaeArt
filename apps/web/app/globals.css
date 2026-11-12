@@ -59,6 +59,16 @@ body {
   }
 }
 
+/* The guide and checklists are meant to be printed: no menus, plain white paper. */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+}
+
 /* ---------- Public site (ADR 011) ---------- */
 
 .skip-link {

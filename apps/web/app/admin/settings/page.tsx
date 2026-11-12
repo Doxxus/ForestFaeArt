@@ -3,7 +3,7 @@ import { PAYMENT_METHODS, PAYMENT_METHOD_LABELS, STORE_MODES } from "@ffa/valida
 import { Alert, Badge, Button, Card, Checkbox, Field, Flash, Input, LinkButton, PageHeader, Textarea } from "@/components/ui";
 import { STORE_MODE_INFO as MODES } from "@/lib/store-modes";
 import { requireUser, serverApi } from "@/lib/session";
-import { loadSamplesAction, removeSamplesAction, restartSetupAction, setShowSamplesAction, setSiteLiveAction, updateSettingsAction } from "./actions";
+import { loadSamplesAction, removeSamplesAction, restartSetupAction, setShowSamplesAction, setSiteLiveAction, updateSettingsAction, backupNowAction } from "./actions";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -11,7 +11,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   await requireUser({ admin: true });
   const { saved, error } = await searchParams;
   const api = await serverApi();
-  const [s, a, setup] = await Promise.all([api.settings.get.query(), api.site.attention.query(), api.setup.get.query()]);
+  const [s, a, setup, backups] = await Promise.all([api.settings.get.query(), api.site.attention.query(), api.setup.get.query(), api.data.backupStatus.query()]);
   const checklist: { done: boolean; text: string; href: string }[] = [
     { done: a.draftPages.length === 0, text: a.draftPages.length ? `${a.draftPages.length} website ${a.draftPages.length === 1 ? "page has" : "pages have"} placeholder text` : "Website pages are written", href: "/admin/website" },
     { done: !a.sourcingPlaceholder, text: a.sourcingPlaceholder ? "The sourcing statement is still placeholder text" : "Sourcing statement is written", href: "#sourcingStatement" },
@@ -117,6 +117,36 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           )}
         </Card>
       </div>
+
+      <Card title="Your data and backups" className="mb-6">
+        <p className="mb-3 text-moss">
+          Your records are backed up automatically every night, and the last 30 days are kept. You can also take a copy of your own as spreadsheets whenever you like.
+        </p>
+        {backups.configured ? (
+          backups.database?.ok ? (
+            <p className="mb-3">
+              <Badge tone="good">Backed up</Badge> Last backup: {new Date(backups.database.at).toLocaleString("en-CA", { dateStyle: "medium", timeStyle: "short", timeZone: "America/Toronto" })} ({backups.kept} nightly {backups.kept === 1 ? "copy is" : "copies are"} kept, {backups.photos} {backups.photos === 1 ? "photo is" : "photos are"} copied)
+            </p>
+          ) : (
+            <Alert tone="error">
+              {backups.database ? "The last backup didn't work. Please tell your developer." : "No backup has been made yet. It happens overnight, or press “Back up now”."}
+            </Alert>
+          )
+        ) : (
+          <p className="mb-3">
+            <Badge tone="warn">Not connected</Badge> Backups only run on the live website.
+          </p>
+        )}
+        <div className="flex flex-wrap gap-2">
+          <LinkButton href="/admin/export">Download all my data (zip)</LinkButton>
+          <form action={backupNowAction}>
+            <Button type="submit" variant="secondary">
+              Back up now
+            </Button>
+          </form>
+        </div>
+        <p className="mt-2 text-sm text-moss">The zip holds spreadsheets of your pieces, sales, customers, events and messages. It doesn&apos;t include photos.</p>
+      </Card>
 
       <form action={updateSettingsAction} className="space-y-6">
         <Card title="How the shop works">

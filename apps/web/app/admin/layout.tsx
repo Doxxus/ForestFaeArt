@@ -18,15 +18,17 @@ const NAV = [
   { href: "/admin/import", label: "Import", admin: true },
   { href: "/admin/users", label: "Users", admin: true },
   { href: "/admin/settings", label: "Settings", admin: true },
+  { href: "/admin/guide", label: "Guide", admin: true },
+  { href: "/admin/guide/staff", label: "Quick start", staffOnly: true },
   { href: "/", label: "View website" },
 ] as const;
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const user = await requireUser();
-  const links = NAV.filter((item) => !("admin" in item) || user.role === "ADMIN");
+  const links = NAV.filter((item) => (!("admin" in item) || user.role === "ADMIN") && (!("staffOnly" in item) || user.role === "STAFF"));
   return (
     <div className="min-h-screen">
-      <header className="border-b border-stone bg-forest text-cream">
+      <header className="no-print border-b border-stone bg-forest text-cream">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
           <Link href="/admin" className="inline-block py-2 font-display text-xl text-champagne">
             Forest Fae Folk Art

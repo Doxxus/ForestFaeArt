@@ -10,7 +10,8 @@
     "lint": "eslint app components lib tests",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
-    "deploy:staging": "vinext-cloudflare deploy"
+    "deploy:staging": "node scripts/deploy.mjs staging",
+    "deploy:production": "node scripts/deploy.mjs production"
   },
   "dependencies": {
     "@ffa/api-types": "workspace:*",
@@ -39,6 +40,6 @@
     "cf": "1.0.0-beta.26",
     "tailwindcss": "4.3.3",
     "typescript": "^6.0.3",
-    "vite": "8.3.0"
+    "vite": "8.3.8"
   }
 }
