@@ -9,8 +9,9 @@ How the gift is handed over on or before **25 December 2026** (HAND-0 to HAND-8)
 | Production environment | Live at https://forestfae.ca and https://api.forestfae.ca, behind "Coming soon", `noindex`, `robots.txt` disallowing everything |
 | Production database | Migrated (0000 to 0007), **empty**: no sample data, no users, no products |
 | Backups and monitoring | Built. Nightly backup and 15-minute check are scheduled on production |
-| Production secrets | `SESSION_SECRET`, `INTERNAL_SECRET` set. **Still to set:** `RESEND_API_KEY`, `ALERT_EMAIL` |
-| First administrator | **Not created yet** |
+| Production secrets | `SESSION_SECRET`, `INTERNAL_SECRET`, `RESEND_API_KEY` and `ALERT_EMAIL` are all set (checked 12 Nov) |
+| First administrator | Created (the developer's, on the project email). Must be switched off or downgraded on handover day |
+| Outside uptime monitor | UptimeRobot, emailing the project email (12 Nov) |
 | Real inventory | **Not imported yet** (waiting for the owner's spreadsheet) |
 | Email Routing for `asa@` | **Not set up** (the destination must be verified by the owner on the day) |
 | POS app | Production build profile points at `api.forestfae.ca`. **No production build made yet** |
@@ -19,10 +20,10 @@ How the gift is handed over on or before **25 December 2026** (HAND-0 to HAND-8)
 
 ### Production set-up that needs the developer, not the code
 
-- [ ] **Set `RESEND_API_KEY` on production**: `cd apps/api; npx wrangler secret put RESEND_API_KEY --env production` and paste a sending-only key restricted to `forestfae.ca` (a new key in the developer's Resend account, so the staging key can be rotated separately).
-- [ ] **Set `ALERT_EMAIL` on production** to the developer's address: `npx wrangler secret put ALERT_EMAIL --env production`.
-- [ ] **Create the developer's administrator account on production.** Use `apps/api/scripts/create-user.ts` (header shows the command) with a password only you know, apply the SQL with `--env production --remote`, delete the file. Sign in at https://forestfae.ca/login.
-- [ ] **Add the outside uptime monitor** (UptimeRobot or similar) on `https://forestfae.ca/healthz` and `https://api.forestfae.ca/health`, emailing the developer. Add it to the account inventory.
+- [x] **Set `RESEND_API_KEY` on production** (done 12 Nov): `cd apps/api; npx wrangler secret put RESEND_API_KEY --env production` and paste a sending-only key restricted to `forestfae.ca` (a new key in the developer's Resend account, so the staging key can be rotated separately).
+- [x] **Set `ALERT_EMAIL` on production** (done 12 Nov): `npx wrangler secret put ALERT_EMAIL --env production`.
+- [x] **Create the developer's administrator account on production** (done 12 Nov). Use `apps/api/scripts/create-user.ts` (header shows the command) with a password only you know, apply the SQL with `--env production --remote`, delete the file. Sign in at https://forestfae.ca/login.
+- [x] **Add the outside uptime monitor** (done 12 Nov: UptimeRobot, emailing the project email). Check it watches both `https://forestfae.ca/healthz` and `https://api.forestfae.ca/health`, and keep the account in the inventory.
 - [ ] Check the **registrar lock and auto-renew** for `forestfae.ca`, and set **billing alerts** on the Cloudflare account.
 - [ ] Send a **test alert** end to end: temporarily break nothing, but check one real email arrives by running the monitor with a deliberately wrong `WEB_ORIGIN` on staging with `ALERT_EMAIL` set, then put it back. (The logic is tested, the delivery is not.)
 - [ ] In the admin on production: **Settings**, set the business name, emails (`asa@forestfae.ca`, `noreply@forestfae.ca`), the website address (`https://forestfae.ca`, which is what QR codes use), social links and phone. Run the **Setup Wizard** once so it is understood, then press "Start the wizard again" so the owner sees it on the day.
