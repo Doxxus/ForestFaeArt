@@ -12,9 +12,9 @@ How the gift is handed over on or before **25 December 2026** (HAND-0 to HAND-8)
 | Production secrets | `SESSION_SECRET`, `INTERNAL_SECRET`, `RESEND_API_KEY` and `ALERT_EMAIL` are all set (checked 12 Nov) |
 | First administrator | Created (the developer's, on the project email). Must be switched off or downgraded on handover day |
 | Outside uptime monitor | UptimeRobot, emailing the project email (12 Nov) |
-| Real inventory | **Not imported yet** (waiting for the owner's spreadsheet) |
+| Real inventory | **Imported 22 Nov**: 71 products, 173 pieces, from the owner's on-hand sheet (no photos or descriptions yet). Checked against production: first SKU `FFA-000001`, no samples |
 | Email Routing for `asa@` | **Not set up** (the destination must be verified by the owner on the day) |
-| POS app | Production build profile points at `api.forestfae.ca`. **No production build made yet** |
+| POS app | Production APK built and tested on 22 Nov (sale by label scan, then undone; stock back to 173) |
 
 ## Before handover day (developer)
 
@@ -31,24 +31,24 @@ How the gift is handed over on or before **25 December 2026** (HAND-0 to HAND-8)
 
 ### Data readiness (HAND-7)
 
-- [ ] Get the owner's real inventory spreadsheet (**blocked: waiting for it**) and import it with Import (Appendix A format). Use the preview, check the counts, confirm. Import can be undone.
-- [ ] **No sample data** on production (Settings shows "Add the sample data" and not "Remove"). It was never loaded.
+- [x] Imported the owner's real inventory on 22 Nov (71 products, 173 pieces) with Import. Still to do: descriptions, photos, provenance, and a check of the Scorpion Dome (quantity 0, so it is sold out) and the Pelvis Dome (no quantity in the sheet, so 1).
+- [x] **No sample data** on production (checked 22 Nov: no sample products).
 - [ ] Real **categories** and fields reviewed. Products have **no photos** yet and show the standard placeholder (IMG-9).
 - [ ] About, Contact and other pages hold the lorem ipsum placeholder copy. The site stays **hidden** (Coming soon), `siteLive` off.
-- [ ] A **test sale to undo**: sell a piece in the POS app against production and undo it, so the audit trail shows the test and stock returns. Do this last, and check the piece is back to Available.
-- [ ] SKUs: the first real piece should be `FFA-000001` (no samples loaded means no numbers burned).
+- [x] A **test sale to undo** (done 22 Nov): a piece was sold by label scan on the production POS app and undone, and the stock is back to 173.
+- [x] SKUs: the first real piece is `FFA-000001` (checked 22 Nov).
 
 ### Labels and printing (after the domain is live: it is)
 
-- [ ] Settings website address is `https://forestfae.ca` (QR-6). Labels printed against it carry **no** TEST mark. Labels made against staging do.
-- [ ] Print one real label on the B1 from production, scan it with a phone, and check it opens the right piece on `forestfae.ca`.
+- [x] Settings website address is `https://forestfae.ca` (QR-6). Labels printed against it carry **no** TEST mark (confirmed 22 Nov). Labels made against staging do.
+- [x] Printed one real label on the B1 from production over Bluetooth (22 Nov): no TEST mark, and it was scanned and sold from the POS app.
 - [ ] The first batch of real labels is printed **on the day** (decision 35), plus the test prints already done.
 - [ ] Pack: the **NIIMBOT B1** (gift), 2 to 3 spare 40×30 mm rolls, a charging cable.
 
 ### The POS app
 
-- [ ] Make the production APK: `cd apps/pos; pnpm dlx eas-cli build --platform android --profile production` (see staging.md). Install it on the developer's own phone and run a full test sale and undo against production.
-- [ ] Download and store the **Android signing key** (`eas credentials`), with the owner's recovery information (HAND-3).
+- [x] Make the production APK: `cd apps/pos; pnpm dlx eas-cli build --platform android --profile production` (see staging.md). **Done 22 Nov**: built with the camera as the only sensitive permission, installed on the developer's phone, and a real piece was sold by label scan and undone against production.
+- [x] Download and store the **Android signing key** (`eas credentials`) (done 22 Nov, kept outside the repo). Still to do on the day: pass it on or store it with the owner's recovery information (HAND-3).
 - [ ] The EAS preview build for staging is still open from Phase 6. It is not needed for handover.
 
 ### Rehearsal (do once, on staging, with a second email for the "owner")
@@ -56,7 +56,7 @@ How the gift is handed over on or before **25 December 2026** (HAND-0 to HAND-8)
 - [ ] Run the whole **handover-day list below** on staging, start to finish, with a throwaway email standing in for the owner, and a second phone. Time it. Fix anything that was awkward in the Owner Guide.
 - [ ] Rehearse **Stage 2** steps 3 and 4 (members and billing) with a throwaway second Cloudflare login, to confirm the dashboard still matches the runbook.
 - [ ] Do the **restore drill** on production data (runbook, "Drill").
-- [ ] Run Lighthouse (mobile) on https://forestfae.ca while signed in (or briefly published): the budget is performance 90 or more, LCP 2.5 s or less, CLS 0.05 or less ([ADR 012](./adr/012-public-site-redesign.md)).
+- [x] Lighthouse (mobile) run on 22 Nov 2026, median of 3 cold-cache runs per page, with the Lighthouse default of simulated slow 4G and a 4× slower CPU. The budget is performance 90 or more, LCP 2.5 s or less, CLS 0.05 or less ([ADR 012](./adr/012-public-site-redesign.md)). **Real pages (signed in, on staging, same build as production):** home, portfolio, a piece, about, contact and events all score performance 100, LCP 1.5 to 1.7 s, CLS 0 to 0.001, TBT 0 ms, best practices 100, accessibility 100 (96 on events before a re-run showed 100). **What visitors see on https://forestfae.ca today (Coming soon page, signed out):** performance 97 to 99, LCP 2.2 to 2.5 s, CLS 0, accessibility 100, best practices 100. SEO shows 54 only because the site is deliberately `noindex` until published. Still worth doing: one run on the real production pages while signed in (Chrome DevTools, Lighthouse tab, mobile), and a look on a real phone.
 
 ## Handover day (HAND-4)
 

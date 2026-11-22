@@ -119,7 +119,7 @@ The app is in `apps/pos` ([ADR 014](./adr/014-sales-and-pos.md)). It uses no cus
 5. To try offline selling, turn on airplane mode, make a sale (it says "Sale saved on this phone" straight away), turn airplane mode off, and watch the "waiting to send" message clear within about 20 seconds. Then open **Today** and check it is there.
 6. **Print a label** in the app opens the web print screen in Chrome. Sign in to the admin in Chrome on that phone once, and printing works as in [Labels and the B1 printer](#labels-and-the-b1-printer).
 
-**Making an installable APK** (for the owner's and staff phones at handover, HAND-4): `pnpm dlx eas-cli login`, then in `apps/pos` run `pnpm dlx eas-cli build --platform android --profile preview` (staging) or `--profile production`. EAS gives a private link to the APK. The production profile points at `https://api.forestfae.ca`, which is a placeholder until the production domain exists (Phase 8). `pnpm bundle:check` checks the app still bundles.
+**Making an installable APK** (for the owner's and staff phones at handover, HAND-4): `pnpm dlx eas-cli login`, then in `apps/pos` run `pnpm dlx eas-cli build --platform android --profile preview` (staging) or `--profile production`. EAS gives a private link to the APK. The production profile points at `https://api.forestfae.ca` (live since Phase 8). The project is `forestfae-pos` under the Expo organization `forestfaefolkart`, and the first production build was made on 22 Nov 2026. `app.json` blocks the `RECORD_AUDIO` permission (`eas init` adds it, and the camera plugin would otherwise request it), so check the built APK asks only for the camera. `pnpm bundle:check` checks the app still bundles.
 
 ## The Setup Wizard, sample data and help
 
