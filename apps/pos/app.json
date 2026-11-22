@@ -17,6 +17,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "permissions": ["CAMERA"],
+      "blockedPermissions": ["android.permission.RECORD_AUDIO"],
       "predictiveBackGestureEnabled": false
     },
     "plugins": [
@@ -36,6 +37,12 @@
           "imageWidth": 200
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "3f6f4623-e24e-48ca-b8fd-e2f541101fee"
+      }
+    },
+    "owner": "forestfaefolkart"
   }
 }

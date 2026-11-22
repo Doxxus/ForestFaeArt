@@ -23,11 +23,11 @@ How the gift is handed over on or before **25 December 2026** (HAND-0 to HAND-8)
 - [x] **Set `RESEND_API_KEY` on production** (done 12 Nov): `cd apps/api; npx wrangler secret put RESEND_API_KEY --env production` and paste a sending-only key restricted to `forestfae.ca` (a new key in the developer's Resend account, so the staging key can be rotated separately).
 - [x] **Set `ALERT_EMAIL` on production** (done 12 Nov): `npx wrangler secret put ALERT_EMAIL --env production`.
 - [x] **Create the developer's administrator account on production** (done 12 Nov). Use `apps/api/scripts/create-user.ts` (header shows the command) with a password only you know, apply the SQL with `--env production --remote`, delete the file. Sign in at https://forestfae.ca/login.
-- [x] **Add the outside uptime monitor** (done 12 Nov: UptimeRobot, emailing the project email). Check it watches both `https://forestfae.ca/healthz` and `https://api.forestfae.ca/health`, and keep the account in the inventory.
-- [ ] Check the **registrar lock and auto-renew** for `forestfae.ca`, and set **billing alerts** on the Cloudflare account.
+- [x] **Add the outside uptime monitor** (done 12 Nov: UptimeRobot, emailing the project email). Confirmed 22 Nov that it watches both `https://forestfae.ca/healthz` and `https://api.forestfae.ca/health`; keep the account in the inventory.
+- [x] Check the **registrar lock and auto-renew** for `forestfae.ca`, and set **billing alerts** on the Cloudflare account (done 22 Nov).
 - [ ] Send a **test alert** end to end: temporarily break nothing, but check one real email arrives by running the monitor with a deliberately wrong `WEB_ORIGIN` on staging with `ALERT_EMAIL` set, then put it back. (The logic is tested, the delivery is not.)
-- [ ] In the admin on production: **Settings**, set the business name, emails (`asa@forestfae.ca`, `noreply@forestfae.ca`), the website address (`https://forestfae.ca`, which is what QR codes use), social links and phone. Run the **Setup Wizard** once so it is understood, then press "Start the wizard again" so the owner sees it on the day.
-- [ ] Check **Settings, Your data and backups** shows a backup after the first night, and that `ffa-prod-backups` holds `db/` and `media/`.
+- [x] (done 22 Nov) In the admin on production: **Settings**, set the business name, emails (`asa@forestfae.ca`, `noreply@forestfae.ca`), the website address (`https://forestfae.ca`, which is what QR codes use), social links and phone. Run the **Setup Wizard** once so it is understood, then press "Start the wizard again" so the owner sees it on the day.
+- [x] (done 22 Nov) Check **Settings, Your data and backups** shows a backup after the first night, and that `ffa-prod-backups` holds `db/` and `media/`.
 
 ### Data readiness (HAND-7)
 
