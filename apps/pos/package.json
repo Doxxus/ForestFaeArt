@@ -6,7 +6,7 @@
     "@ffa/api-types": "workspace:*",
     "@ffa/ui": "workspace:*",
     "@ffa/validators": "workspace:*",
-    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-async-storage/async-storage": "3.1.1",
     "@trpc/client": "11.22.1",
     "expo": "~58.0.22",
     "expo-camera": "~58.0.14",
